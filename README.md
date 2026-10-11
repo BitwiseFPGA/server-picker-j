@@ -36,7 +36,7 @@ A lightweight server picker for Deadlock that also supports Counter-Strike 2 and
 
 ## Screenshot
 
-![Deadlock Server Picker](readme_assets/server-picker-j.png)
+![Deadlock Server Picker](readme_assets/deadlock-server-picker.gif)
 
 ## What's different from the original
 
