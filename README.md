@@ -72,12 +72,6 @@ language all stay exactly as they were.
 
 Close the app first, Windows won't let you overwrite files that are still running.
 
-**Coming from Server Picker J (v1.3.0 or older):** the app was renamed, so the
-executable is now `DeadlockServerPicker.exe`. After copying the new files in,
-delete the old `ServerPickerX.exe` (and `RunServerPickerX.sh` on Linux) and
-update any shortcut or pinned icon. Your settings, presets and blocked servers
-carry over.
-
 ## Blocking persists after you close the app
 
 Blocking a server creates a Windows Firewall rule (or an iptables rule on Linux). 
