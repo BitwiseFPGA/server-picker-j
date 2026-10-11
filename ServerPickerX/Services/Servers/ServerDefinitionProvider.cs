@@ -11,6 +11,9 @@ namespace ServerPickerX.Services.Servers
 {
     public class ServerDefinitionProvider
     {
+        // Deadlock is listed first, it is the game this app is built around
+        private const int DeadlockAppId = 1422450;
+
         private readonly List<ServerDefinition> _serverDefinitions = [];
         private readonly JsonSerializerOptions _jsonDeserializerOptions = new()
         {
@@ -48,9 +51,14 @@ namespace ServerPickerX.Services.Servers
 
             var json = File.ReadAllText(path);
 
-            var serverDefinitions = JsonSerializer.Deserialize<List<ServerDefinition>>(json, _jsonDeserializerOptions);
+            List<ServerDefinition> loadedDefinitions =
+                JsonSerializer.Deserialize<List<ServerDefinition>>(json, _jsonDeserializerOptions) ?? [];
 
-            _serverDefinitions = serverDefinitions ?? [];
+            // Files written by older versions list CS2 first, the order is fixed here
+            // instead of rewriting the file
+            _serverDefinitions = loadedDefinitions
+                .OrderBy(definition => definition.AppId == DeadlockAppId ? 0 : 1)
+                .ToList();
         }
 
         public IReadOnlyList<ServerDefinition> GetDefinitions() => _serverDefinitions.AsReadOnly();
@@ -100,6 +108,16 @@ namespace ServerPickerX.Services.Servers
                 [
                     new ServerDefinition
                     {
+                        GameMode = "Deadlock",
+                        Id = "deadlock",
+                        DisplayName = "Deadlock",
+                        AppId = DeadlockAppId,
+                        KeywordFilterMode = "none",
+                        Keywords = [],
+                        ClusterKeywords = ["China", "Hong Kong", "Sweden", "India", "Netherlands"]
+                    },
+                    new ServerDefinition
+                    {
                         GameMode = "Counter Strike 2",
                         Id = "cs2",
                         DisplayName = "CS2",
@@ -117,16 +135,6 @@ namespace ServerPickerX.Services.Servers
                         KeywordFilterMode = "include",
                         Keywords = ["China"],
                         ClusterKeywords = ["Tencent", "Alibaba", "Perfect World"]
-                    },
-                    new ServerDefinition
-                    {
-                        GameMode = "Deadlock",
-                        Id = "deadlock",
-                        DisplayName = "Deadlock",
-                        AppId = 1422450,
-                        KeywordFilterMode = "none",
-                        Keywords = [],
-                        ClusterKeywords = ["China", "Hong Kong", "Sweden", "India", "Netherlands"]
                     },
                     new ServerDefinition
                     {

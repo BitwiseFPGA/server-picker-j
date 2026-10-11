@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using ServerPickerX.Helpers;
 using ServerPickerX.Models;
 using ServerPickerX.Services.DependencyInjection;
 using ServerPickerX.Services.Games;
@@ -17,7 +18,9 @@ using ServerPickerX.Settings;
 using ServerPickerX.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServerPickerX.Views
@@ -54,6 +57,12 @@ namespace ServerPickerX.Views
         private bool _gameWasRunning;
         private bool _gameWatcherApplied;
         private bool _gameWatcherBusy;
+
+        // While the game runs the watcher waits on its process instead of polling. The
+        // generation lets a wait that ends late tell the watcher was restarted meanwhile
+        private CancellationTokenSource? _gameExitWait;
+        private int _gameWatcherGeneration;
+        private bool _gameExitWaitSupported = true;
 
         private readonly ILoggerService _loggerService;
         private readonly JsonSetting _jsonSetting;
@@ -356,18 +365,16 @@ namespace ServerPickerX.Views
         }
 
         // Watches for the current game starting and stopping so the preset the user
-        // last picked is applied on launch and taken back off on exit
+        // last picked is applied on launch and taken back off on exit. The process list
+        // is only polled while waiting for a launch. Once the game is running its exit
+        // is awaited instead, so the watcher does no work at all while you play
         public void ConfigureGameWatcher()
         {
-            if (_gameWatcherTimer != null)
-            {
-                _gameWatcherTimer.Stop();
-                _gameWatcherTimer.Tick -= GameWatcherTimer_Tick;
-                _gameWatcherTimer = null;
-            }
+            StopGameWatcher();
 
             _gameWatcherApplied = false;
             _gameWatcherBusy = false;
+            _gameExitWaitSupported = true;
 
             if (!_jsonSetting.auto_apply_on_game_launch)
             {
@@ -378,14 +385,47 @@ namespace ServerPickerX.Views
 
             // Seed the state from the current reality, so a game that is already running
             // when the watcher starts is not mistaken for a launch that just happened
-            _gameWasRunning = _gameProcessService.IsGameRunning(_gameWatcherGameMode);
+            Process? runningGame = _gameProcessService.FindRunningGameProcess(_gameWatcherGameMode);
 
-            _gameWatcherTimer = new DispatcherTimer(DispatcherPriority.Background)
+            _gameWasRunning = runningGame != null;
+
+            if (runningGame != null)
             {
-                Interval = TimeSpan.FromSeconds(5)
-            };
+                _ = WaitForGameExitAsync(runningGame);
 
-            _gameWatcherTimer.Tick += GameWatcherTimer_Tick;
+                return;
+            }
+
+            StartGameWatcherPolling();
+        }
+
+        private void StopGameWatcher()
+        {
+            _gameWatcherGeneration++;
+
+            if (_gameWatcherTimer != null)
+            {
+                _gameWatcherTimer.Stop();
+                _gameWatcherTimer.Tick -= GameWatcherTimer_Tick;
+                _gameWatcherTimer = null;
+            }
+
+            _gameExitWait?.Cancel();
+            _gameExitWait = null;
+        }
+
+        private void StartGameWatcherPolling()
+        {
+            if (_gameWatcherTimer == null)
+            {
+                _gameWatcherTimer = new DispatcherTimer(DispatcherPriority.Background)
+                {
+                    Interval = TimeSpan.FromSeconds(5)
+                };
+
+                _gameWatcherTimer.Tick += GameWatcherTimer_Tick;
+            }
+
             _gameWatcherTimer.Start();
         }
 
@@ -409,47 +449,116 @@ namespace ServerPickerX.Views
                 return;
             }
 
-            bool isRunning = _gameProcessService.IsGameRunning(_gameWatcherGameMode);
+            int generation = _gameWatcherGeneration;
 
-            if (isRunning == _gameWasRunning)
-            {
-                return;
-            }
-
-            // Wait for the app to go idle rather than queueing firewall work behind a
-            // running operation. The transition is still there on the next tick
-            if (!vm.ServersLoaded || !vm.IsOperationAllowed)
-            {
-                return;
-            }
-
-            _gameWatcherBusy = true;
+            Process? runningGame = _gameProcessService.FindRunningGameProcess(_gameWatcherGameMode);
 
             try
             {
-                if (isRunning)
+                bool isRunning = runningGame != null;
+
+                if (isRunning != _gameWasRunning)
                 {
-                    await ApplyPresetForGameLaunchAsync(vm);
+                    // Wait for the app to go idle rather than queueing firewall work behind a
+                    // running operation. The transition is still there on the next tick
+                    if (!vm.ServersLoaded || !vm.IsOperationAllowed)
+                    {
+                        return;
+                    }
+
+                    _gameWatcherBusy = true;
+
+                    try
+                    {
+                        if (isRunning)
+                        {
+                            await ApplyPresetForGameLaunchAsync(vm);
+                        }
+                        else if (_gameWatcherApplied)
+                        {
+                            // Only ever undo what this watcher did itself. Blocks the user made
+                            // by hand are theirs to remove, the app does not clear them silently
+                            _gameWatcherApplied = false;
+
+                            await vm.UnblockAllAsync(shouldClearLastSelectedPreset: false);
+
+                            SyncPresetSelection(vm.SelectedPreset);
+
+                            await _loggerService.LogInfoAsync($"Auto apply unblocked all servers after {_gameWatcherGameMode} closed");
+                        }
+
+                        _gameWasRunning = isRunning;
+                    }
+                    finally
+                    {
+                        _gameWatcherBusy = false;
+                    }
                 }
-                else if (_gameWatcherApplied)
+
+                // Nothing needs polling while the game runs, its exit is awaited instead.
+                // Skipped when the watcher was restarted during the firewall work above
+                if (_gameWasRunning
+                    && runningGame != null
+                    && _gameExitWaitSupported
+                    && generation == _gameWatcherGeneration)
                 {
-                    // Only ever undo what this watcher did itself. Blocks the user made
-                    // by hand are theirs to remove, the app does not clear them silently
-                    _gameWatcherApplied = false;
+                    _ = WaitForGameExitAsync(runningGame);
 
-                    await vm.UnblockAllAsync(shouldClearLastSelectedPreset: false);
-
-                    SyncPresetSelection(vm.SelectedPreset);
-
-                    await _loggerService.LogInfoAsync($"Auto apply unblocked all servers after {_gameWatcherGameMode} closed");
+                    runningGame = null;
                 }
-
-                _gameWasRunning = isRunning;
             }
             finally
             {
-                _gameWatcherBusy = false;
+                runningGame?.Dispose();
             }
+        }
+
+        // Takes ownership of the process and disposes it once the wait is over
+        private async Task WaitForGameExitAsync(Process gameProcess)
+        {
+            int generation = _gameWatcherGeneration;
+
+            _gameWatcherTimer?.Stop();
+
+            using CancellationTokenSource exitWait = new();
+
+            _gameExitWait = exitWait;
+
+            try
+            {
+                await gameProcess.WaitForExitAsync(exitWait.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // The watcher was restarted or switched off, or the window is closing
+                return;
+            }
+            catch (Exception ex)
+            {
+                // A process that cannot be waited on, for example when access to it is
+                // denied, falls back to polling for the exit the way the watcher used to
+                _gameExitWaitSupported = false;
+
+                await _loggerService.LogWarningAsync("Auto apply could not wait for the game to exit, polling instead: " + ex.Message);
+            }
+            finally
+            {
+                gameProcess.Dispose();
+
+                if (ReferenceEquals(_gameExitWait, exitWait))
+                {
+                    _gameExitWait = null;
+                }
+            }
+
+            if (generation != _gameWatcherGeneration)
+            {
+                return;
+            }
+
+            // The next tick finds the game gone and takes the preset back off, or finds it
+            // running again, a relaunch or a second process, and goes back to waiting
+            StartGameWatcherPolling();
         }
 
         private async Task ApplyPresetForGameLaunchAsync(MainWindowViewModel vm)
@@ -515,8 +624,8 @@ namespace ServerPickerX.Views
 
                 _trayIcon = new TrayIcon
                 {
-                    Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ServerPickerX/Assets/favicon.ico"))),
-                    ToolTipText = "Server Picker X",
+                    Icon = new WindowIcon(AssetLoader.Open(ResourceHelper.CreateResourceUriFromPath("/Assets/favicon.ico"))),
+                    ToolTipText = "Deadlock Server Picker",
                     IsVisible = true,
                     Menu = trayMenu
                 };
@@ -589,7 +698,7 @@ namespace ServerPickerX.Views
             }
 
             _autoRefreshTimer?.Stop();
-            _gameWatcherTimer?.Stop();
+            StopGameWatcher();
 
             DisposeTrayIcon();
 
@@ -651,6 +760,7 @@ namespace ServerPickerX.Views
                     throw new InvalidOperationException("No server definitions were found.");
                 }
 
+                // A saved game that is no longer listed falls back to the first one, Deadlock
                 if (!gameModes.Contains(_jsonSetting.game_mode, StringComparer.OrdinalIgnoreCase))
                 {
                     await _jsonSetting.SetGameModeAsync(gameModes[0]);

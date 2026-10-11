@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ServerPickerX.Services.Games
 {
@@ -6,6 +7,8 @@ namespace ServerPickerX.Services.Games
     {
         IReadOnlyList<string> GetProcessNames(string gameMode);
 
-        bool IsGameRunning(string gameMode);
+        // One running process of the game, or null when it is not running. The caller
+        // owns the returned process and has to dispose it
+        Process? FindRunningGameProcess(string gameMode);
     }
 }

@@ -22,6 +22,8 @@ namespace ServerPickerX.Services.SystemFirewalls
         IProcessService _processService
         ) : ISystemFirewallService
     {
+        // Keeps the original project name on purpose. Rules made by earlier versions carry
+        // this prefix, changing it would leave them behind with no way to remove them in the app
         private const string _firewallRulePrefix = "server_picker_x_";
         private const NET_FW_RULE_DIRECTION_ _firewallRuleDirectionOutbound = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_OUT;
         private const NET_FW_ACTION_ _firewallRuleActionBlock = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
@@ -86,7 +88,7 @@ namespace ServerPickerX.Services.SystemFirewalls
         // the machine's firewall configuration alone. The previous implementation ran
         // "netsh advfirewall reset", which restores Windows defaults and deletes every
         // rule on the system, including ones other applications rely on
-        public async Task ResetFirewallAsync(ObservableCollection<ServerModel> serverModels)
+        public async Task<bool> ResetFirewallAsync(ObservableCollection<ServerModel> serverModels)
         {
             bool confirmed = await _messageBoxService.ShowMessageBoxConfirmationAsync(
                     _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
@@ -94,7 +96,7 @@ namespace ServerPickerX.Services.SystemFirewalls
                     MsBox.Avalonia.Enums.Icon.Warning
                 );
 
-            if (!confirmed) return;
+            if (!confirmed) return false;
 
             try
             {
@@ -140,6 +142,8 @@ namespace ServerPickerX.Services.SystemFirewalls
                         ),
                     MsBox.Avalonia.Enums.Icon.Success
                     );
+
+                return true;
             }
             catch (Exception ex)
             {

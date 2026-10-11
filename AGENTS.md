@@ -1,11 +1,13 @@
 # AGENTS.md
 
 ## App Overview
-A Windows/Linux desktop application designed to manage access to global CS2, Deadlock and other configured game servers by blocking
+A Windows/Linux desktop application designed to manage access to Deadlock, CS2 and other configured game servers by blocking
 or unblocking specific servers based on their geographic location. The primary function of this tool is server filtering for distributed gaming networks.
 
 ## Repository Overview
-This repository contains a **AvaloniaUI** desktop application named *ServerPickerX*.
+This repository contains a **AvaloniaUI** desktop application, *Deadlock Server Picker*. The executable is
+`DeadlockServerPicker`, while the project, folders and namespaces keep the upstream name *ServerPickerX* so
+changes from the original repository still merge cleanly.
 The project is a .NET 10.0 that bundles all resources into
 a single file `<PublishSingleFile>true</PublishSingleFile>` and it can run independently without requiring .NET SDK `<SelfContained>true</SelfContained>`. 
 The code follows the MVVM pattern with ViewModels exposed through `Microsoft.Extensions.DependencyInjection` specifically a 
@@ -22,6 +24,7 @@ must treat the saved state as possibly stale, which is what `ReconcileBlockedSta
 - **Never wipe the whole firewall.** `netsh advfirewall reset` and `iptables -F` destroy every rule on the
 machine, including rules other applications depend on. Both were used here previously and both were removed
 deliberately. Remove rules by the `server_picker_x_` name prefix on Windows and by explicit `-D` deletion on Linux.
+The prefix keeps the old name on purpose: renaming it would orphan every rule created by earlier versions.
 - **A blocked server cannot be pinged.** The rule blocks all protocols, so ICMP goes with it and every probe
 fails. The ping sweep skips blocked servers, and `RestoreReading` keeps the last good reading instead of
 blanking it. Blanking it gives every blocked server the same sort key.

@@ -1,10 +1,10 @@
-# Server Picker J
+# Deadlock Server Picker
 
 <div align="center">
 
-  <img src="https://img.shields.io/github/v/release/cankhut/server-picker-j"/>
-  <img src="https://img.shields.io/github/downloads/cankhut/server-picker-j/total.svg"/>
-  <img src="https://img.shields.io/github/license/cankhut/server-picker-j"/>
+  <img src="https://img.shields.io/github/v/release/cankhut/deadlock-server-picker"/>
+  <img src="https://img.shields.io/github/downloads/cankhut/deadlock-server-picker/total.svg"/>
+  <img src="https://img.shields.io/github/license/cankhut/deadlock-server-picker"/>
 
 </div>
 
@@ -28,15 +28,15 @@ consider supporting the original author instead.
 </tr>
 </table>
 
-A lightweight server picker for Counter Strike and Deadlock with cross-platform support for **Windows** and **Linux**. Blocks game servers by location so the game matches you where you want.
+A lightweight server picker for Deadlock that also supports Counter-Strike 2 and Marathon, for **Windows** and **Linux**. Blocks game servers by location so the game matches you where you want.
 
 ## Download
 
-**[Latest release](https://github.com/cankhut/server-picker-j/releases)**
+**[Latest release](https://github.com/cankhut/deadlock-server-picker/releases)**
 
 ## Screenshot
 
-![Server Picker J](readme_assets/server-picker-j.png)
+![Deadlock Server Picker](readme_assets/server-picker-j.png)
 
 ## What's different from the original
 
@@ -51,12 +51,12 @@ A lightweight server picker for Counter Strike and Deadlock with cross-platform 
 
 ## Install
 
-**Windows:** extract anywhere, then run `ServerPickerX.exe` **as administrator**.
+**Windows:** extract anywhere, then run `DeadlockServerPicker.exe` **as administrator**.
 
 **Linux:** extract, then:
 
 ```
-./RunServerPickerX.sh
+./RunDeadlockServerPicker.sh
 ```
 
 The script adds the execute permission and launches the app with sudo on the
@@ -65,12 +65,18 @@ current shell. Don't run the binary directly with `sudo`.
 ## Updating
 
 Download the latest release, open the zip, and copy the files inside it into your
-existing Server Picker folder, overwriting when Windows asks. That's the whole update procedure.
+existing app folder, overwriting when Windows asks. That's the whole update procedure.
 
 Your `settings.json` isn't in the zip, so your blocked servers, presets, theme and
 language all stay exactly as they were.
 
 Close the app first, Windows won't let you overwrite files that are still running.
+
+**Coming from Server Picker J (v1.3.0 or older):** the app was renamed, so the
+executable is now `DeadlockServerPicker.exe`. After copying the new files in,
+delete the old `ServerPickerX.exe` (and `RunServerPickerX.sh` on Linux) and
+update any shortcut or pinned icon. Your settings, presets and blocked servers
+carry over.
 
 ## Blocking persists after you close the app
 
@@ -110,21 +116,21 @@ the app but it should be completely fixed now.
 
 | Problem | Fix |
 |---|---|
-| Rules not applied, or the app won't start | Run as administrator on Windows, or use `./RunServerPickerX.sh` on Linux |
+| Rules not applied, or the app won't start | Run as administrator on Windows, or use `./RunDeadlockServerPicker.sh` on Linux |
 | No servers appear | Check your connection please, the server list comes from Steam's API |
 | Every server shows no ping | Something else is blocking ICMP, or you're offline |
 
-The app writes `server_picker_x_log.txt` and `settings.json` next to the
+The app writes `deadlock_server_picker_log.txt` and `settings.json` next to the
 executable. Don't edit `settings.json` by hand, just use the Settings window please.
 
-Found a bug? [Open an issue](https://github.com/cankhut/server-picker-j/issues)
+Found a bug? [Open an issue](https://github.com/cankhut/deadlock-server-picker/issues)
 with your OS, the steps to reproduce it, and the log file.
 
 ## Building from source
 
 ```
-git clone https://github.com/cankhut/server-picker-j.git
-cd server-picker-j
+git clone https://github.com/cankhut/deadlock-server-picker.git
+cd deadlock-server-picker
 dotnet restore ServerPickerX.slnx
 dotnet publish ServerPickerX/ServerPickerX.csproj -c Release -r win-x64
 ```

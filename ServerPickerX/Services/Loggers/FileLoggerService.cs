@@ -6,7 +6,7 @@ namespace ServerPickerX.Services.Loggers
 {
     public class FileLoggerService : ILoggerService
     {
-        private readonly string _logFilePath = AppDomain.CurrentDomain.BaseDirectory + "server_picker_x_log.txt";
+        private readonly string _logFilePath = AppDomain.CurrentDomain.BaseDirectory + "deadlock_server_picker_log.txt";
 
         public async Task LogErrorAsync(string message, string? details = null)
         {

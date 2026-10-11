@@ -1,7 +1,6 @@
 using Avalonia;
 using Optris.Icons.Avalonia;
 using Optris.Icons.Avalonia.FontAwesome;
-using Optris.Icons.Avalonia.MaterialDesign;
 using ServerPickerX.Constants;
 using ServerPickerX.Settings;
 using System;
@@ -24,8 +23,7 @@ namespace ServerPickerX
         public static AppBuilder BuildAvaloniaApp()
         {
             IconProvider.Current
-            .Register<FontAwesomeIconProvider>()
-            .Register<MaterialDesignIconProvider>();
+            .Register<FontAwesomeIconProvider>();
 
             object platformOptions = OperatingSystem.IsWindows()
                 ? new Win32PlatformOptions

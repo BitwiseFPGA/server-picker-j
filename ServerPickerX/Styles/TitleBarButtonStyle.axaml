@@ -38,4 +38,16 @@
         <Setter Property="Background" Value="{DynamicResource SpxBadBrush}" />
         <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
+
+    <!-- The window glyphs are paths, which take Fill rather than Foreground, so they follow
+         the same colours as above. Order matters, the close button's white has to come last -->
+    <Style Selector="Button.titlebar-btn Path.titlebar-glyph">
+        <Setter Property="Fill" Value="{DynamicResource SpxTextMutedBrush}" />
+    </Style>
+    <Style Selector="Button.titlebar-btn:pointerover Path.titlebar-glyph, Button.titlebar-btn:pressed Path.titlebar-glyph">
+        <Setter Property="Fill" Value="{DynamicResource SpxTextBrush}" />
+    </Style>
+    <Style Selector="Button.close-btn:pointerover Path.titlebar-glyph, Button.close-btn:pressed Path.titlebar-glyph">
+        <Setter Property="Fill" Value="#FFFFFF" />
+    </Style>
 </Styles>

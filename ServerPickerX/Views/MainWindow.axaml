@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         x:Class="ServerPickerX.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Server Picker X"
+        Title="Deadlock Server Picker"
         Width="1000"
         Height="680"
         MinWidth="700"
@@ -47,7 +47,7 @@
                     Classes="rule-bottom"
                     Background="{DynamicResource SpxChromeBrush}">
                 <Grid x:Name="TitleBar" Background="Transparent" PointerPressed="TitleBar_PointerPressed">
-                    <TextBlock Classes="window-title" Margin="14,0,0,0" Text="Server Picker X" />
+                    <TextBlock Classes="window-title" Margin="14,0,0,0" Text="Deadlock Server Picker" />
                     <userControls:TitleBarButtons />
                 </Grid>
             </Border>

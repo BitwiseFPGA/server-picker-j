@@ -7,9 +7,10 @@ using System.Linq;
 
 namespace ServerPickerX.Services.Games
 {
-    // Answers whether the game behind a given game mode currently has a running process.
-    // This is polled rather than event driven, since a handful of name lookups every few
-    // seconds costs far less than a WMI process watcher and needs no extra permissions.
+    // Finds the running process of the game behind a given game mode. The watcher polls
+    // this only while waiting for a launch, a handful of name lookups every few seconds
+    // costs far less than a WMI process watcher and needs no extra permissions. Once the
+    // game is found, its exit is awaited on the process itself instead.
     public class GameProcessService : IGameProcessService
     {
         private readonly ServerDefinitionProvider _serverDefinitionProvider;
@@ -40,7 +41,7 @@ namespace ServerPickerX.Services.Games
                 : GameProcesses.GetByAppId(serverDefinition.AppId.ToString());
         }
 
-        public bool IsGameRunning(string gameMode)
+        public Process? FindRunningGameProcess(string gameMode)
         {
             foreach (string processName in GetProcessNames(gameMode))
             {
@@ -57,20 +58,21 @@ namespace ServerPickerX.Services.Games
                     continue;
                 }
 
-                bool isRunning = processes.Length > 0;
-
-                foreach (Process process in processes)
+                if (processes.Length == 0)
                 {
-                    process.Dispose();
+                    continue;
                 }
 
-                if (isRunning)
+                // Only the first is handed back, the rest are released here
+                for (int i = 1; i < processes.Length; i++)
                 {
-                    return true;
+                    processes[i].Dispose();
                 }
+
+                return processes[0];
             }
 
-            return false;
+            return null;
         }
 
         // Process.GetProcessesByName never wants the extension, strip it in case a

@@ -13,15 +13,9 @@
             <ResourceDictionary.MergedDictionaries>
 				<!-- Locale swapping only removes dictionaries with a LanguageCode key -->
 				<ResourceInclude Source="/Styles/Palette.axaml" />
+				<!-- English is only the startup default. LocalizationService loads the chosen
+				     language on its own, so the other eight are never loaded unless picked -->
 				<ResourceInclude Source="/Locales/Locale_en-us.axaml" />
-				<ResourceInclude Source="/Locales/Locale_es-es.axaml" />
-				<ResourceInclude Source="/Locales/Locale_zh-cn.axaml" />
-				<ResourceInclude Source="/Locales/Locale_ja-jp.axaml" />
-				<ResourceInclude Source="/Locales/Locale_sv-se.axaml" />
-				<ResourceInclude Source="/Locales/Locale_ru-ru.axaml" />
-				<ResourceInclude Source="/Locales/Locale_de-de.axaml" />
-				<ResourceInclude Source="/Locales/Locale_pl-pl.axaml" />
-				<ResourceInclude Source="/Locales/Locale_tr-tr.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

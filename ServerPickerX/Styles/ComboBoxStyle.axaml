@@ -3,8 +3,8 @@
     <Design.PreviewWith>
         <Border Padding="20" Background="#09090B">
             <ComboBox Classes="game-combobox" Width="170" SelectedIndex="0">
-                <ComboBoxItem>Counter Strike 2</ComboBoxItem>
                 <ComboBoxItem>Deadlock</ComboBoxItem>
+                <ComboBoxItem>Counter Strike 2</ComboBoxItem>
             </ComboBox>
         </Border>
     </Design.PreviewWith>

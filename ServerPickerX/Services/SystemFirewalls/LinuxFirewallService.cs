@@ -86,7 +86,7 @@ namespace ServerPickerX.Services.SystemFirewalls
         // Deletes only the DROP rules this app added, one per server. The previous
         // implementation ran "iptables -F", which flushes every rule in the table and
         // would take unrelated rules, including ones protecting remote access, with it
-        public async Task ResetFirewallAsync(ObservableCollection<ServerModel> serverModels)
+        public async Task<bool> ResetFirewallAsync(ObservableCollection<ServerModel> serverModels)
         {
             bool confirmed = await _messageBoxService.ShowMessageBoxConfirmationAsync(
                 _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
@@ -96,7 +96,7 @@ namespace ServerPickerX.Services.SystemFirewalls
 
             if (!confirmed)
             {
-                return;
+                return false;
             }
 
             try
@@ -113,6 +113,8 @@ namespace ServerPickerX.Services.SystemFirewalls
                         ),
                     MsBox.Avalonia.Enums.Icon.Success
                     );
+
+                return true;
             }
             catch (Exception ex)
             {

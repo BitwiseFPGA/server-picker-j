@@ -2,9 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:i="https://github.com/projektanker/icons.avalonia"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              x:Class="ServerPickerX.TitleBarButtons">
+    <!-- The window glyphs are drawn here instead of coming from an icon pack, which kept a
+         whole Material Design icon set in the app for these three alone. The geometry is the
+         Material Design Icons window-minimize/maximize/close (Pictogrammers, Apache 2.0) on
+         their 24 unit grid, scaled to the same size the icon pack drew them at. Their colour
+         comes from TitleBarButtonStyle.axaml -->
     <StackPanel
         HorizontalAlignment="Right"
         VerticalAlignment="Stretch"
@@ -12,24 +16,38 @@
         <Button
             Name="MinimizeBtn"
             Classes="titlebar-btn minimize-btn"
-            i:Attached.Icon="mdi-window-minimize" 
             Width="42"
             Height="32"
-            Click="MinimizeBtn_Click" />
+            Click="MinimizeBtn_Click">
+            <Viewbox Width="13" Height="13">
+                <Canvas Width="24" Height="24">
+                    <Path Classes="titlebar-glyph" Data="M20,14H4V10H20Z" />
+                </Canvas>
+            </Viewbox>
+        </Button>
         <Button
             Name="MaximizeBtn"
             Classes="titlebar-btn maximize-btn"
-            i:Attached.Icon="mdi-window-maximize" 
             Width="42"
             Height="32"
-            Click="MaximizeBtn_Click" />
+            Click="MaximizeBtn_Click">
+            <Viewbox Width="13" Height="13">
+                <Canvas Width="24" Height="24">
+                    <Path Classes="titlebar-glyph" Data="M4,4H20V20H4V4M6,8V18H18V8H6Z" />
+                </Canvas>
+            </Viewbox>
+        </Button>
         <Button
             Name="CloseBtn"
             Classes="titlebar-btn close-btn"
-            i:Attached.Icon="mdi-window-close" 
-            FontSize="15"
             Width="42"
             Height="32"
-            Click="CloseBtn_Click" />
+            Click="CloseBtn_Click">
+            <Viewbox Width="15" Height="15">
+                <Canvas Width="24" Height="24">
+                    <Path Classes="titlebar-glyph" Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" />
+                </Canvas>
+            </Viewbox>
+        </Button>
     </StackPanel>
 </UserControl>

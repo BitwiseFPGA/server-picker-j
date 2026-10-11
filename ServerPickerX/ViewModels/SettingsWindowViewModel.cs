@@ -68,7 +68,13 @@ namespace ServerPickerX.ViewModels
                         ? new ObservableCollection<ServerModel>(mainViewModel.ServerModels)
                         : [];
 
-                await _systemFirewallService.ResetFirewallAsync(serverModels);
+                bool rulesRemoved = await _systemFirewallService.ResetFirewallAsync(serverModels);
+
+                // Cancelled, the rules are all still there, so the cards must keep showing them
+                if (!rulesRemoved)
+                {
+                    return;
+                }
 
                 if (MainWindow.Instance?.DataContext is MainWindowViewModel viewModelToRefresh)
                 {

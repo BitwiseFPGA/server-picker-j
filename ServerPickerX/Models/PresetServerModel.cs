@@ -1,5 +1,6 @@
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
+using ServerPickerX.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -54,11 +55,9 @@ namespace ServerPickerX.Models
                 return cachedValue;
             }
 
-            string assetUri = $"avares://ServerPickerX{flagPath}";
-
             try
             {
-                using var stream = AssetLoader.Open(new Uri(assetUri));
+                using var stream = AssetLoader.Open(ResourceHelper.CreateResourceUriFromPath(flagPath));
                 byte[] hash = SHA256.HashData(stream);
                 string flagSortKey = Convert.ToHexString(hash);
                 FlagSortKeyCache[flagPath] = flagSortKey;

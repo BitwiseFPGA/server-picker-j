@@ -25,7 +25,8 @@ namespace ServerPickerX.Settings
         // Properties are virtual for unit test mocking 
         public virtual string warning { get; private set; } = "Do not modify settings here! only do it from the app!";
 
-        public virtual string game_mode { set; get; } = "Counter Strike 2";
+        // New installs open on Deadlock, after that the last game picked is remembered
+        public virtual string game_mode { set; get; } = "Deadlock";
 
         public virtual string render_mode { set; get; } = "Software (CPU)";
 
