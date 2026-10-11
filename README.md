@@ -56,11 +56,13 @@ A lightweight server picker for Deadlock that also supports Counter-Strike 2 and
 **Linux:** extract, then:
 
 ```
-./RunDeadlockServerPicker.sh
+bash RunDeadlockServerPicker.sh
 ```
 
 The script adds the execute permission and launches the app with sudo on the
-current shell. Don't run the binary directly with `sudo`.
+current shell. Don't run the binary directly with `sudo`. Start the script with
+`bash` as shown, the zip can't mark it as executable, so `./RunDeadlockServerPicker.sh`
+fails with "Permission denied".
 
 ## Updating
 
@@ -110,7 +112,7 @@ the app but it should be completely fixed now.
 
 | Problem | Fix |
 |---|---|
-| Rules not applied, or the app won't start | Run as administrator on Windows, or use `./RunDeadlockServerPicker.sh` on Linux |
+| Rules not applied, or the app won't start | Run as administrator on Windows, or use `bash RunDeadlockServerPicker.sh` on Linux |
 | No servers appear | Check your connection please, the server list comes from Steam's API |
 | Every server shows no ping | Something else is blocking ICMP, or you're offline |
 
