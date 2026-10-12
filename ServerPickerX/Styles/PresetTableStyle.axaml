@@ -1,0 +1,125 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20" Background="#17191C" Width="320">
+            <StackPanel>
+                <Border Classes="preset-table-header">
+                    <Border Classes="preset-table-header-cell">
+                        <TextBlock Classes="preset-table-header-text" Text="Preset" />
+                    </Border>
+                </Border>
+                <ListBox Classes="preset-table">
+                    <ListBoxItem>
+                        <Border Classes="preset-table-row">
+                            <TextBlock Classes="preset-table-cell" Text="EU only" />
+                        </Border>
+                    </ListBoxItem>
+                </ListBox>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Tables inside the preset manager window: a header row above a plain ListBox,
+         sized and coloured like the grid they replaced -->
+    <Style Selector="ListBox.preset-table">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextBrush}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="ListBox.preset-table ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextBrush}" />
+    </Style>
+
+    <!-- Row states. These come after Fluent's own, so they win, and the later
+         ones win over the earlier ones when several match -->
+    <Style Selector="ListBox.preset-table ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextBrush}" />
+    </Style>
+    <Style Selector="ListBox.preset-table ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SpxRowHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.preset-table ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SpxRowSelectedBrush}" />
+    </Style>
+    <Style Selector="ListBox.preset-table ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SpxRowSelectedHoverBrush}" />
+    </Style>
+
+    <!-- Horizontal line under every row -->
+    <Style Selector="Border.preset-table-row">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SpxBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <Style Selector="TextBlock.preset-table-cell">
+        <Setter Property="Margin" Value="12,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- Header row, clicking a header cell sorts by it -->
+    <Style Selector="Border.preset-table-header">
+        <Setter Property="Background" Value="{DynamicResource SpxChromeBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SpxBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.preset-table-header-cell">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="Height" Value="32" />
+
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SpxControlHoverBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </Style>
+    <Style Selector="TextBlock.preset-table-header-text">
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextMutedBrush}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Small triangle beside the sorted column, its direction is set in code -->
+    <Style Selector="Path.sort-glyph">
+        <Setter Property="Fill" Value="{DynamicResource SpxTextMutedBrush}" />
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Inline rename box in the preset list -->
+    <Style Selector="TextBox.preset-name-editor">
+        <Setter Property="Background" Value="{DynamicResource SpxControlBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SpxRingBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource SpxTextBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource SpxControlPressedBrush}" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Margin" Value="4,0" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="CheckBox.preset-toggle">
+        <Setter Property="Foreground" Value="{DynamicResource SpxTextBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+</Styles>

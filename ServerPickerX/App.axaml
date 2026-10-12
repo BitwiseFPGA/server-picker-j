@@ -22,13 +22,12 @@
   
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="/Styles/BaseStyle.axaml" />
         <StyleInclude Source="/Styles/TitleBarButtonStyle.axaml" />
         <StyleInclude Source="/Styles/MainButtonStyle.axaml" />
         <StyleInclude Source="/Styles/TextBoxStyle.axaml" />
         <StyleInclude Source="/Styles/ComboBoxStyle.axaml" />
-        <StyleInclude Source="/Styles/DataGridStyle.axaml" />
+        <StyleInclude Source="/Styles/PresetTableStyle.axaml" />
         <!-- Must stay after BaseStyle so blocked card setters win over metric tiers -->
         <StyleInclude Source="/Styles/ServerCardStyle.axaml" />
     </Application.Styles>

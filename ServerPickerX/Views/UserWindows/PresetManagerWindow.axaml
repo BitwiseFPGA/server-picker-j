@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:userControls="using:ServerPickerX"
         xmlns:viewmodels="using:ServerPickerX.ViewModels"
+        xmlns:models="using:ServerPickerX.Models"
         xmlns:converters="clr-namespace:ServerPickerX.Converters"
         mc:Ignorable="d"
         x:Class="ServerPickerX.Views.PresetManagerWindow"
@@ -110,31 +111,46 @@
                                 Click="ImportBtn_Click" />
                         </Grid>
 
-                        <DataGrid
-                            Grid.Row="2"
-                            x:Name="PresetListGrid"
-                            Classes="preset-grid"
-                            AutoGenerateColumns="False"
-                            ItemsSource="{Binding Presets}"
-                            SelectedItem="{Binding SelectedPresetItem}"
-                            IsReadOnly="True"
-                            CanUserSortColumns="True"
-                            SelectionMode="Extended"
-                            Margin="0,10,0,0"
-                            SelectionChanged="PresetListGrid_SelectionChanged"
-                            Sorting="PresetListGrid_Sorting"
-                            BeginningEdit="PresetListGrid_BeginningEdit"
-                            RowEditEnded="PresetListGrid_RowEditEnded"
-                            DoubleTapped="PresetListGrid_DoubleTapped"
-                            KeyDown="PresetListGrid_KeyDown">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn
-                                    Header="{DynamicResource PresetListHeader}"
-                                    SortMemberPath="Name"
-                                    Binding="{Binding Name}"
-                                    Width="*" />
-                            </DataGrid.Columns>
-                        </DataGrid>
+                        <!-- A header row over a plain list. Sorting and renaming are handled in the code-behind -->
+                        <Grid Grid.Row="2" Margin="0,10,0,0" RowDefinitions="Auto,*">
+                            <Border Classes="preset-table-header">
+                                <Border Classes="preset-table-header-cell"
+                                        Tapped="PresetHeader_Tapped"
+                                        DoubleTapped="PresetHeader_Tapped">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="preset-table-header-text"
+                                                   Text="{DynamicResource PresetListHeader}" />
+                                        <Path x:Name="PresetSortGlyph" Classes="sort-glyph" IsVisible="False" />
+                                    </StackPanel>
+                                </Border>
+                            </Border>
+
+                            <ListBox
+                                Grid.Row="1"
+                                x:Name="PresetList"
+                                Classes="preset-table"
+                                ItemsSource="{Binding Presets}"
+                                SelectedItem="{Binding SelectedPresetItem}"
+                                SelectionMode="Multiple"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                SelectionChanged="PresetList_SelectionChanged"
+                                DoubleTapped="PresetList_DoubleTapped">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PresetModel">
+                                        <Border Classes="preset-table-row">
+                                            <Panel>
+                                                <TextBlock x:Name="PresetNameText"
+                                                           Classes="preset-table-cell"
+                                                           Text="{Binding Name}" />
+                                                <TextBox x:Name="PresetNameEditor"
+                                                         Classes="preset-name-editor"
+                                                         IsVisible="False" />
+                                            </Panel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -203,52 +219,93 @@
                             </StackPanel>
                         </Grid>
 
-                        <DataGrid
-                            Grid.Row="1"
-                            x:Name="ServerItemsGrid"
-                            Classes="preset-grid"
-                            AutoGenerateColumns="False"
-                            ItemsSource="{Binding PresetServers}"
-                            IsReadOnly="False"
-                            IsEnabled="{Binding CanEditPreset}"
-                            CanUserSortColumns="True"
-                            Margin="0,10,0,0"
-                            SelectionMode="Extended"
-                            Sorting="ServerItemsGrid_Sorting"
-                            KeyDown="ServerItemsGrid_KeyDown">
-                            <DataGrid.Columns>
-                                <DataGridTemplateColumn Width="100" Header="{DynamicResource AllowedColumnHeader}" SortMemberPath="IsAllowed">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid>
+                        <!-- Header and rows share the same column widths so they line up.
+                             Each header cell's Tag is the sort key the view model understands -->
+                        <Grid Grid.Row="1"
+                              Margin="0,10,0,0"
+                              RowDefinitions="Auto,*"
+                              IsEnabled="{Binding CanEditPreset}">
+                            <Border Classes="preset-table-header">
+                                <Grid ColumnDefinitions="100,56,96,*">
+                                    <Border Grid.Column="0"
+                                            Classes="preset-table-header-cell"
+                                            Tag="Allowed"
+                                            Tapped="ServerHeader_Tapped"
+                                            DoubleTapped="ServerHeader_Tapped">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Classes="preset-table-header-text"
+                                                       Text="{DynamicResource AllowedColumnHeader}" />
+                                            <Path x:Name="AllowedSortGlyph" Classes="sort-glyph" IsVisible="False" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1"
+                                            Classes="preset-table-header-cell"
+                                            Tag="Flag"
+                                            Tapped="ServerHeader_Tapped"
+                                            DoubleTapped="ServerHeader_Tapped">
+                                        <Path x:Name="FlagSortGlyph" Classes="sort-glyph" IsVisible="False" />
+                                    </Border>
+                                    <Border Grid.Column="2"
+                                            Classes="preset-table-header-cell"
+                                            Tag="ServerId"
+                                            Tapped="ServerHeader_Tapped"
+                                            DoubleTapped="ServerHeader_Tapped">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Classes="preset-table-header-text" Text="ID" />
+                                            <Path x:Name="IdSortGlyph" Classes="sort-glyph" IsVisible="False" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="3"
+                                            Classes="preset-table-header-cell"
+                                            Tag="ServerName"
+                                            Tapped="ServerHeader_Tapped"
+                                            DoubleTapped="ServerHeader_Tapped">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Classes="preset-table-header-text" Text="Location" />
+                                            <Path x:Name="LocationSortGlyph" Classes="sort-glyph" IsVisible="False" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <ListBox
+                                Grid.Row="1"
+                                x:Name="ServerList"
+                                Classes="preset-table"
+                                ItemsSource="{Binding PresetServers}"
+                                SelectionMode="Multiple"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PresetServerModel">
+                                        <Border Classes="preset-table-row">
+                                            <Grid ColumnDefinitions="100,56,96,*">
                                                 <CheckBox
                                                     Classes="preset-toggle"
                                                     IsChecked="{Binding IsAllowed}"
                                                     Click="AllowedCheckBox_Click" />
+                                                <Border Grid.Column="1"
+                                                        Width="26"
+                                                        Height="17"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        BorderBrush="{DynamicResource SpxBorderBrush}"
+                                                        BorderThickness="1"
+                                                        ClipToBounds="True">
+                                                    <Image Source="{Binding Flag, Converter={StaticResource ImageConverter}}"
+                                                           Stretch="UniformToFill" />
+                                                </Border>
+                                                <TextBlock Grid.Column="2"
+                                                           Classes="preset-table-cell"
+                                                           Text="{Binding Name}" />
+                                                <TextBlock Grid.Column="3"
+                                                           Classes="preset-table-cell"
+                                                           Text="{Binding Description}" />
                                             </Grid>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Width="56" Header="" SortMemberPath="FlagSortKey">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border Width="26"
-                                                    Height="17"
-                                                    HorizontalAlignment="Left"
-                                                    VerticalAlignment="Center"
-                                                    BorderBrush="{DynamicResource SpxBorderBrush}"
-                                                    BorderThickness="1"
-                                                    ClipToBounds="True">
-                                                <Image Source="{Binding Flag, Converter={StaticResource ImageConverter}}"
-                                                       Stretch="UniformToFill" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Width="96" Header="ID" SortMemberPath="Name" Binding="{Binding Name}" />
-                                <DataGridTextColumn Width="*" Header="Location" SortMemberPath="Description" Binding="{Binding Description}" />
-                            </DataGrid.Columns>
-                        </DataGrid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>

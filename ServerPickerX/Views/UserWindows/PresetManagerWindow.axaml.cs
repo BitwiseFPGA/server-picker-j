@@ -1,7 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ServerPickerX.Models;
@@ -20,9 +23,16 @@ namespace ServerPickerX.Views
 {
     public partial class PresetManagerWindow : Window
     {
+        // Triangles drawn beside the sorted column header
+        private static readonly Geometry SortAscendingGlyph = StreamGeometry.Parse("M0,4 L4,0 L8,4 Z");
+        private static readonly Geometry SortDescendingGlyph = StreamGeometry.Parse("M0,0 L4,4 L8,0 Z");
+
         private bool _committingPresetName;
         private bool _isEditingPresetName;
         private string? _editingPresetOriginalName;
+        private PresetModel? _editingPreset;
+        private TextBox? _presetNameEditor;
+        private TextBlock? _presetNameLabel;
         private ListSortDirection? _presetSortDirection;
         private string? _serverSortColumn;
         private ListSortDirection _serverSortDirection = ListSortDirection.Ascending;
@@ -33,6 +43,7 @@ namespace ServerPickerX.Views
         public PresetManagerWindow()
         {
             InitializeComponent();
+            HookListKeys();
 
             _messageBoxService = ServiceLocator.GetRequiredService<IMessageBoxService>();
             _localizationService = ServiceLocator.GetRequiredService<ILocalizationService>();
@@ -41,6 +52,7 @@ namespace ServerPickerX.Views
         public PresetManagerWindow(MainWindowViewModel mainVm)
         {
             InitializeComponent();
+            HookListKeys();
 
             _messageBoxService = ServiceLocator.GetRequiredService<IMessageBoxService>();
             _localizationService = ServiceLocator.GetRequiredService<ILocalizationService>();
@@ -51,6 +63,14 @@ namespace ServerPickerX.Views
                 ServiceLocator.GetRequiredService<IMessageBoxService>(),
                 ServiceLocator.GetRequiredService<ILocalizationService>()
                 );
+        }
+
+        // The keys are caught on the way down, before the list's own handling, which
+        // would otherwise use Space to change the selection
+        private void HookListKeys()
+        {
+            PresetList.AddHandler(KeyDownEvent, PresetList_KeyDown, RoutingStrategies.Tunnel);
+            ServerList.AddHandler(KeyDownEvent, ServerList_KeyDown, RoutingStrategies.Tunnel);
         }
 
         private async void ShareBtn_Click(object? sender, RoutedEventArgs e)
@@ -175,7 +195,7 @@ namespace ServerPickerX.Views
             ReapplyServerSortIfNeeded();
         }
 
-        private void PresetListGrid_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        private void PresetList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             ReapplyServerSortIfNeeded();
         }
@@ -184,30 +204,6 @@ namespace ServerPickerX.Views
         {
             e.Handled = true;
             (TopLevel.GetTopLevel(this) as Window)?.BeginMoveDrag(e);
-        }
-
-        private void PresetListGrid_BeginningEdit(object? sender, DataGridBeginningEditEventArgs e)
-        {
-            if (e.Row.DataContext is not PresetModel presetItem)
-            {
-                return;
-            }
-
-            _isEditingPresetName = true;
-            _editingPresetOriginalName = presetItem.Name;
-        }
-
-        private async void PresetListGrid_RowEditEnded(object? sender, DataGridRowEditEndedEventArgs e)
-        {
-            _isEditingPresetName = false;
-            PresetListGrid.IsReadOnly = true;
-
-            if (e.EditAction != DataGridEditAction.Commit || e.Row.DataContext is not PresetModel presetItem)
-            {
-                return;
-            }
-
-            await CommitPresetNameAsync(presetItem, _editingPresetOriginalName ?? presetItem.Name);
         }
 
         private async Task CommitPresetNameAsync(PresetModel presetItem, string originalPresetName)
@@ -232,16 +228,15 @@ namespace ServerPickerX.Views
             }
         }
 
-        private void PresetListGrid_DoubleTapped(object? sender, TappedEventArgs e)
+        private void PresetList_DoubleTapped(object? sender, TappedEventArgs e)
         {
             if (_isEditingPresetName || DataContext is not PresetManagerWindowViewModel vm || vm.SelectedPresetItem == null)
             {
                 return;
             }
 
-            if (e.Source is not Control sourceControl ||
-                sourceControl.FindAncestorOfType<DataGridColumnHeader>() != null ||
-                sourceControl.FindAncestorOfType<DataGridCell>() == null)
+            // Only a double click on a row renames, not one on empty space below the rows
+            if (e.Source is not Visual sourceVisual || sourceVisual.FindAncestorOfType<ListBoxItem>(true) == null)
             {
                 return;
             }
@@ -249,9 +244,10 @@ namespace ServerPickerX.Views
             BeginEditingSelectedPreset();
         }
 
-        private async void PresetListGrid_KeyDown(object? sender, KeyEventArgs e)
+        private async void PresetList_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (DataContext is not PresetManagerWindowViewModel vm)
+            // Keys typed into the rename box belong to the rename box
+            if (_isEditingPresetName || DataContext is not PresetManagerWindowViewModel vm)
             {
                 return;
             }
@@ -283,9 +279,9 @@ namespace ServerPickerX.Views
             }
         }
 
-        private void PresetListGrid_Sorting(object? sender, DataGridColumnEventArgs e)
+        private void PresetHeader_Tapped(object? sender, TappedEventArgs e)
         {
-            if (DataContext is not PresetManagerWindowViewModel vm || PresetListGrid.Columns.Count == 0 || !ReferenceEquals(e.Column, PresetListGrid.Columns[0]))
+            if (DataContext is not PresetManagerWindowViewModel vm)
             {
                 return;
             }
@@ -297,6 +293,7 @@ namespace ServerPickerX.Views
             };
 
             vm.SortPresets(_presetSortDirection.Value);
+            UpdatePresetSortGlyph();
         }
 
         private async void AllowedCheckBox_Click(object? sender, RoutedEventArgs e)
@@ -331,19 +328,20 @@ namespace ServerPickerX.Views
             ReapplyServerSortIfNeeded();
         }
 
-        private async void ServerItemsGrid_KeyDown(object? sender, KeyEventArgs e)
+        private async void ServerList_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key != Key.Space || DataContext is not PresetManagerWindowViewModel vm)
             {
                 return;
             }
 
-            if (ServerItemsGrid.SelectedItems.Count == 0)
+            // A focused checkbox toggles itself, the rest of the selection is left alone
+            if (e.Source is Visual sourceVisual && sourceVisual.FindAncestorOfType<CheckBox>(true) != null)
             {
                 return;
             }
 
-            List<PresetServerModel> selectedItems = ServerItemsGrid.SelectedItems
+            List<PresetServerModel> selectedItems = (ServerList.SelectedItems ?? System.Array.Empty<object>())
                 .OfType<PresetServerModel>()
                 .ToList();
 
@@ -365,27 +363,20 @@ namespace ServerPickerX.Views
             ReapplyServerSortIfNeeded();
         }
 
-        private void ServerItemsGrid_Sorting(object? sender, DataGridColumnEventArgs e)
+        private void ServerHeader_Tapped(object? sender, TappedEventArgs e)
         {
-            string? sortKey = e.Column.SortMemberPath switch
-            {
-                "IsAllowed" => "Allowed",
-                "FlagSortKey" => "Flag",
-                "Name" => "ServerId",
-                "Description" => "ServerName",
-                _ => null,
-            };
-
-            if (sortKey == null)
+            if (sender is not Control { Tag: string sortKey })
             {
                 return;
             }
 
+            // Allowed servers come first on the first click, everything else sorts A to Z
             ListSortDirection defaultDirection = sortKey == "Allowed"
                 ? ListSortDirection.Descending
                 : ListSortDirection.Ascending;
 
             SortServerItems(sortKey, defaultDirection);
+            UpdateServerSortGlyphs();
         }
 
         private void SortServerItems(string columnName, ListSortDirection defaultDirection = ListSortDirection.Ascending)
@@ -430,30 +421,163 @@ namespace ServerPickerX.Views
             vm.SortServerItems(_serverSortColumn, _serverSortDirection);
         }
 
-        private void RestorePresetListFocus()
+        private void UpdatePresetSortGlyph()
         {
-            Dispatcher.UIThread.Post(() => PresetListGrid.Focus());
+            PresetSortGlyph.IsVisible = _presetSortDirection != null;
+            PresetSortGlyph.Data = _presetSortDirection == ListSortDirection.Descending
+                ? SortDescendingGlyph
+                : SortAscendingGlyph;
         }
 
+        private void UpdateServerSortGlyphs()
+        {
+            (string SortKey, Path Glyph)[] columns =
+            [
+                ("Allowed", AllowedSortGlyph),
+                ("Flag", FlagSortGlyph),
+                ("ServerId", IdSortGlyph),
+                ("ServerName", LocationSortGlyph),
+            ];
+
+            foreach ((string sortKey, Path glyph) in columns)
+            {
+                glyph.IsVisible = sortKey == _serverSortColumn;
+                glyph.Data = _serverSortDirection == ListSortDirection.Descending
+                    ? SortDescendingGlyph
+                    : SortAscendingGlyph;
+            }
+        }
+
+        private void RestorePresetListFocus()
+        {
+            Dispatcher.UIThread.Post(() => PresetList.Focus());
+        }
+
+        // Renaming swaps the row's text for a text box in place. Enter or clicking away
+        // saves, Esc cancels, the same as the grid this replaced
         private void BeginEditingSelectedPreset()
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if (DataContext is not PresetManagerWindowViewModel vm || vm.SelectedPresetItem == null || GetSelectedPresetItems().Count != 1)
+                if (_isEditingPresetName
+                    || DataContext is not PresetManagerWindowViewModel vm
+                    || vm.SelectedPresetItem == null
+                    || GetSelectedPresetItems().Count != 1)
                 {
                     return;
                 }
 
-                PresetListGrid.Focus();
-                PresetListGrid.IsReadOnly = false;
-                PresetListGrid.CurrentColumn = PresetListGrid.Columns.FirstOrDefault();
-                PresetListGrid.BeginEdit();
-            });
+                PresetModel preset = vm.SelectedPresetItem;
+
+                PresetList.ScrollIntoView(preset);
+
+                // A row scrolled into view only exists after the next layout pass
+                Dispatcher.UIThread.Post(() => StartEditingPresetName(preset), DispatcherPriority.Background);
+            }, DispatcherPriority.Background);
+        }
+
+        private void StartEditingPresetName(PresetModel preset)
+        {
+            if (_isEditingPresetName || PresetList.ContainerFromItem(preset) is not Control row)
+            {
+                return;
+            }
+
+            TextBox? editor = row.GetVisualDescendants()
+                .OfType<TextBox>()
+                .FirstOrDefault(textBox => textBox.Name == "PresetNameEditor");
+            TextBlock? label = row.GetVisualDescendants()
+                .OfType<TextBlock>()
+                .FirstOrDefault(textBlock => textBlock.Name == "PresetNameText");
+
+            if (editor == null || label == null)
+            {
+                return;
+            }
+
+            _isEditingPresetName = true;
+            _editingPreset = preset;
+            _editingPresetOriginalName = preset.Name;
+            _presetNameEditor = editor;
+            _presetNameLabel = label;
+
+            editor.Text = preset.Name;
+            editor.KeyDown += PresetNameEditor_KeyDown;
+            editor.LostFocus += PresetNameEditor_LostFocus;
+
+            label.IsVisible = false;
+            editor.IsVisible = true;
+            editor.Focus();
+            editor.SelectAll();
+        }
+
+        private async void PresetNameEditor_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                await FinishEditingPresetNameAsync(true);
+            }
+            else if (e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                await FinishEditingPresetNameAsync(false);
+            }
+        }
+
+        private async void PresetNameEditor_LostFocus(object? sender, RoutedEventArgs e)
+        {
+            await FinishEditingPresetNameAsync(true);
+        }
+
+        private async Task FinishEditingPresetNameAsync(bool shouldCommit)
+        {
+            if (!_isEditingPresetName)
+            {
+                return;
+            }
+
+            _isEditingPresetName = false;
+
+            PresetModel? preset = _editingPreset;
+            string originalPresetName = _editingPresetOriginalName ?? preset?.Name ?? string.Empty;
+            string editedPresetName = _presetNameEditor?.Text ?? string.Empty;
+
+            // Unhooked before hiding, hiding a focused box would fire LostFocus again
+            if (_presetNameEditor != null)
+            {
+                _presetNameEditor.KeyDown -= PresetNameEditor_KeyDown;
+                _presetNameEditor.LostFocus -= PresetNameEditor_LostFocus;
+                _presetNameEditor.IsVisible = false;
+            }
+
+            if (_presetNameLabel != null)
+            {
+                _presetNameLabel.IsVisible = true;
+            }
+
+            _editingPreset = null;
+            _presetNameEditor = null;
+            _presetNameLabel = null;
+
+            if (!shouldCommit || preset == null)
+            {
+                _editingPresetOriginalName = null;
+                RestorePresetListFocus();
+
+                return;
+            }
+
+            preset.Name = editedPresetName;
+
+            await CommitPresetNameAsync(preset, originalPresetName);
+
+            RestorePresetListFocus();
         }
 
         private List<PresetModel> GetSelectedPresetItems()
         {
-            IEnumerable selectedItems = PresetListGrid.SelectedItems ?? System.Array.Empty<object>();
+            IEnumerable selectedItems = PresetList.SelectedItems ?? System.Array.Empty<object>();
             List<PresetModel> selectedPresetItems = selectedItems
                 .OfType<PresetModel>()
                 .Distinct()

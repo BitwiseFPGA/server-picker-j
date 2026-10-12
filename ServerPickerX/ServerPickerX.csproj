@@ -28,8 +28,8 @@
         <PackageProjectUrl>https://github.com/cankhut/deadlock-server-picker</PackageProjectUrl>
         <RepositoryUrl>https://github.com/cankhut/deadlock-server-picker</RepositoryUrl>
         <ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
-        <AssemblyVersion>2.0.0.0</AssemblyVersion>
-        <FileVersion>2.0.0.0</FileVersion>
+        <AssemblyVersion>2.0.1.0</AssemblyVersion>
+        <FileVersion>2.0.1.0</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -44,7 +44,6 @@
 			<EmbedInteropTypes>true</EmbedInteropTypes>
 		</Reference>
         <PackageReference Include="Avalonia" Version="12.0.4" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.0.0" />
         <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->

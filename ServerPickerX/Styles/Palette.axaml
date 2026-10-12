@@ -26,11 +26,10 @@
             <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="#27272A" />
             <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundDisabled" Color="#A1A1AA" />
 
-            <Color x:Key="DataGridRowHoveredBackgroundColor">#18181B</Color>
-            <Color x:Key="DataGridRowSelectedBackgroundColor">#27272A</Color>
-            <Color x:Key="DataGridRowSelectedHoveredBackgroundColor">#32323680</Color>
-            <Color x:Key="DataGridRowSelectedUnfocusedBackgroundColor">#27272A</Color>
-            <Color x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundColor">#323236</Color>
+            <!-- Rows in the preset manager tables -->
+            <SolidColorBrush x:Key="SpxRowHoverBrush" Color="#18181B" />
+            <SolidColorBrush x:Key="SpxRowSelectedBrush" Color="#27272A" />
+            <SolidColorBrush x:Key="SpxRowSelectedHoverBrush" Color="#323236" />
 
             <SolidColorBrush x:Key="SpxWindowBrush" Color="#09090B" />
             <SolidColorBrush x:Key="SpxChromeBrush" Color="#0F0F11" />
@@ -79,11 +78,10 @@
             <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="#E4E4E7" />
             <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundDisabled" Color="#71717A" />
 
-            <Color x:Key="DataGridRowHoveredBackgroundColor">#F4F4F5</Color>
-            <Color x:Key="DataGridRowSelectedBackgroundColor">#E4E4E7</Color>
-            <Color x:Key="DataGridRowSelectedHoveredBackgroundColor">#D4D4D8</Color>
-            <Color x:Key="DataGridRowSelectedUnfocusedBackgroundColor">#E4E4E7</Color>
-            <Color x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundColor">#D4D4D8</Color>
+            <!-- Rows in the preset manager tables -->
+            <SolidColorBrush x:Key="SpxRowHoverBrush" Color="#F4F4F5" />
+            <SolidColorBrush x:Key="SpxRowSelectedBrush" Color="#E4E4E7" />
+            <SolidColorBrush x:Key="SpxRowSelectedHoverBrush" Color="#D4D4D8" />
 
             <SolidColorBrush x:Key="SpxWindowBrush" Color="#F4F4F5" />
             <SolidColorBrush x:Key="SpxChromeBrush" Color="#FFFFFF" />

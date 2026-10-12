@@ -36,7 +36,6 @@ public partial class FooterButtons : UserControl
         RefreshThemeButton();
 
         // Attach tooltips to the footer buttons
-        ToolTip.SetTip(PaypalBtn, "Donate via PayPal");
         ToolTip.SetTip(GithubBtn, "Go to GitHub repository");
         ToolTip.SetTip(SettingsBtn, "Open settings");
     }
@@ -59,13 +58,6 @@ public partial class FooterButtons : UserControl
         ThemeIcon = ThemeService.GetIcon(currentTheme);
 
         ToolTip.SetTip(ThemeBtn, $"Theme: {currentTheme}");
-    }
-
-    private async void PaypalBtn_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        await ServiceLocator
-            .GetRequiredService<IProcessService>()
-            .OpenUrl("https://www.paypal.com/paypalme/fnfal113");
     }
 
     private async void GithubBtn_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

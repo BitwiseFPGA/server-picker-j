@@ -16,10 +16,6 @@
                 Classes="icon-btn"
                 i:Attached.Icon="{Binding ThemeIcon, RelativeSource={RelativeSource AncestorType=UserControl}}"
                 Click="ThemeBtn_Click" />
-        <Button x:Name="PaypalBtn"
-                Classes="icon-btn"
-                i:Attached.Icon="fa-paypal"
-                Click="PaypalBtn_Click" />
         <Button x:Name="GithubBtn"
                 Classes="icon-btn"
                 i:Attached.Icon="fa-github"
