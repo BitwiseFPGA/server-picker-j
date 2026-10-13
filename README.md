@@ -1,4 +1,4 @@
-# Deadlock Server Picker
+# <img src="readme_assets/deadlockserverpickericon.png" width="40" align="top" alt=""> Deadlock Server Picker
 
 <div align="center">
 
@@ -7,26 +7,6 @@
   <img src="https://img.shields.io/github/license/cankhut/deadlock-server-picker"/>
 
 </div>
-
-<table>
-<tr>
-<td valign="middle">
-
-**This is a fork of [server-picker-x](https://github.com/FN-FAL113/server-picker-x) by FN-FAL113.**
-
-The app and nearly all of its code are his work. This version just 
-reworks the user interface and adds a few quality of life features on top. 
-I don't take donations for it, if it's useful to you in any way, please 
-consider supporting the original author instead.
-
-</td>
-<td valign="middle" width="170" align="right">
-<a href="https://www.paypal.com/paypalme/fnfal113">
-  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate to FN-FAL113 via PayPal" width="150">
-</a>
-</td>
-</tr>
-</table>
 
 A lightweight server picker for Deadlock that also supports Counter-Strike 2 and Marathon, for **Windows** and **Linux**. Blocks game servers by location so the game matches you where you want.
 
@@ -74,20 +54,6 @@ language all stay exactly as they were.
 
 Close the app first, Windows won't let you overwrite files that are still running.
 
-## Blocking persists after you close the app
-
-Blocking a server creates a Windows Firewall rule (or an iptables rule on Linux). 
-Those live in your operating system, not in the app itself, so they stay in place even 
-after you close it, after a reboot and indefinitely until you remove them.
-
-The app warns you on exit if servers are still blocked and offers to unblock
-them. To clear everything at once, use **Remove App Rules** in Settings, it
-removes only the rules this app created and leaves the rest of your firewall
-alone.
-
-If you delete the app while servers are still blocked, those rules stay behind.
-Unblock first, or reinstall and use Remove App Rules.
-
 ## FAQ
 
 **Will I get banned?**
@@ -103,6 +69,12 @@ yourself from source if you'd rather not trust the binary.
 
 **I'm receiving frequent timeouts when a match is being confirmed**
 You may have blocked too many servers, for optimal searching and relaying block only the necessary server relays.
+
+**Do servers stay blocked after I close the app?**
+Yes, blocks are firewall rules, so they stay until you unblock them, on Windows
+even after a reboot. The app warns you on exit if anything is still blocked, and
+**Remove App Rules** in Settings clears them all at once. If you're deleting the
+app, unblock everything first.
 
 **Does the firewall reset remove every rule in my machine?**
 No, it only removes this app's rules, this was an issue in an earlier build of 
@@ -146,6 +118,26 @@ Parts of this fork were written with AI assistance. Everything in it has been
 built, run and tested on multiple machines before release.
 
 ## Disclaimer
+
+<table>
+<tr>
+<td valign="middle">
+
+**This is a fork of [server-picker-x](https://github.com/FN-FAL113/server-picker-x) by FN-FAL113.**
+
+The app and nearly all of its code are his work. This version just 
+reworks the user interface and adds a few quality of life features on top. 
+I don't take donations for it, if it's useful to you in any way, please 
+consider supporting the original author instead.
+
+</td>
+<td valign="middle" width="170" align="right">
+<a href="https://www.paypal.com/paypalme/fnfal113">
+  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate to FN-FAL113 via PayPal" width="150">
+</a>
+</td>
+</tr>
+</table>
 
 Not affiliated with, authorised by, or endorsed by Valve or its subsidiaries.
 Trademarks belong to their respective owners.
