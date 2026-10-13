@@ -12,18 +12,9 @@ A lightweight server picker for Deadlock that also supports Counter-Strike 2 and
 
 </div>
 
-## What's different from the original
-
-- Servers are displayed as cards instead of a table, click on it to block or allow it
-- Light and dark themes, following your system setting by default
-- Ping is the average of four probes, so a server that spikes doesn't read the same as a steady one
-- Blocked servers keep their last ping, so they still sort correctly
-- Right click a card to block every server at least as slow as it
-- Presets can be shared as a short code and imported from your clipboard
-- Optional auto refresh and optional close to system tray under settings tab
-- Optionally applies your last used preset when the game launches, and unblocks everything again when it closes
-
 ## Install
+
+**[Latest release](https://github.com/cankhut/deadlock-server-picker/releases)**
 
 **Windows:** extract anywhere, then run `DeadlockServerPicker.exe` **as administrator**.
 
@@ -132,6 +123,17 @@ consider supporting the original author instead.
 </td>
 </tr>
 </table>
+
+# What's different from the original:
+
+- Servers are displayed as cards instead of a table, click on it to block or allow it
+- Light and dark themes, following your system setting by default
+- Ping is the average of four probes, so a server that spikes doesn't read the same as a steady one
+- Blocked servers keep their last ping, so they still sort correctly
+- Right click a card to block every server at least as slow as it
+- Presets can be shared as a short code and imported from your clipboard
+- Optional auto refresh and optional close to system tray under settings tab
+- Optionally applies your last used preset when the game launches, and unblocks everything again when it closes
 
 Not affiliated with, authorised by, or endorsed by Valve or its subsidiaries.
 Trademarks belong to their respective owners.
