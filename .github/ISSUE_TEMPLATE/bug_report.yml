@@ -1,0 +1,51 @@
+name: Bug report
+description: Something isn't working
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Click on ...
+        3. ...
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown at the bottom of the Settings window.
+      placeholder: "2.0.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: game
+    attributes:
+      label: Game
+      options:
+        - Deadlock
+        - Counter Strike 2
+        - Counter Strike 2 (Perfect World)
+        - Marathon
+        - THE FINALS
+  - type: textarea
+    id: log
+    attributes:
+      label: Log file
+      description: Drag `deadlock_server_picker_log.txt` from the app folder into this box, if you can.

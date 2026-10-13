@@ -47,7 +47,17 @@
                     Classes="rule-bottom"
                     Background="{DynamicResource SpxChromeBrush}">
                 <Grid x:Name="TitleBar" Background="Transparent" PointerPressed="TitleBar_PointerPressed">
-                    <TextBlock Classes="window-title" Margin="14,0,0,0" Text="Deadlock Server Picker" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Left"
+                                Margin="12,0,0,0"
+                                Spacing="8">
+                        <Image Source="/Assets/app-icon.png"
+                               Width="16"
+                               Height="16"
+                               VerticalAlignment="Center"
+                               RenderOptions.BitmapInterpolationMode="HighQuality" />
+                        <TextBlock Classes="window-title" Text="Deadlock Server Picker" />
+                    </StackPanel>
                     <userControls:TitleBarButtons />
                 </Grid>
             </Border>
