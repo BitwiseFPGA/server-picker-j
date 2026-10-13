@@ -93,15 +93,6 @@ Use `linux-x64` for Linux. Output lands in
 
 Run the tests with `dotnet test ServerPickerX.Tests.slnx`.
 
-## Credit and licence
-
-Based on [server-picker-x](https://github.com/FN-FAL113/server-picker-x) by
-FN-FAL113, licensed **GPL-3.0**. This fork keeps that licence, and the full
-commit history of the original project is preserved in this repository.
-
-Parts of this fork were written with AI assistance. Everything in it has been
-built, run and tested on multiple machines before release.
-
 ## Disclaimer
 
 <table>
@@ -114,6 +105,11 @@ The app and nearly all of its code are his work. This version just
 reworks the user interface and adds a few quality of life features on top. 
 I don't take donations for it, if it's useful to you in any way, please 
 consider supporting the original author instead.
+
+This fork keeps the original's **GPL-3.0** licence, and the full commit history
+of the original project is preserved in this repository. Parts of it were written
+with AI assistance. Everything in it has been built, run and tested on multiple
+machines before release.
 
 </td>
 <td valign="middle" width="170" align="right">
