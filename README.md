@@ -1,5 +1,9 @@
 # <img src="readme_assets/deadlockserverpickericon.png" width="40" align="top" alt=""> Deadlock Server Picker
 
+A lightweight server picker for Deadlock that also supports Counter-Strike 2 and Marathon, for **Windows** and **Linux**. Blocks game servers by location so the game matches you where you want.
+
+![Deadlock Server Picker](readme_assets/deadlock-server-picker.gif)
+
 <div align="center">
 
   <img src="https://img.shields.io/github/v/release/cankhut/deadlock-server-picker"/>
@@ -7,16 +11,6 @@
   <img src="https://img.shields.io/github/license/cankhut/deadlock-server-picker"/>
 
 </div>
-
-A lightweight server picker for Deadlock that also supports Counter-Strike 2 and Marathon, for **Windows** and **Linux**. Blocks game servers by location so the game matches you where you want.
-
-## Download
-
-**[Latest release](https://github.com/cankhut/deadlock-server-picker/releases)**
-
-## Screenshot
-
-![Deadlock Server Picker](readme_assets/deadlock-server-picker.gif)
 
 ## What's different from the original
 
