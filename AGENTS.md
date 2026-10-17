@@ -54,9 +54,12 @@ keep the old format and carry the effective blocked list. Presets refer to serve
 server code such as `fra`, or in the clustered view the cluster keyword or Valve's name), never by flags or
 anything translated. Changing a game's `clusterKeywords` does rename clustered keys, so treat that as a preset
 change.
-- **The player count is one request to Steam** (`SteamPlayerCountService`), made when the window opens,
-comes back from the tray or the user presses Refresh. It never runs on a timer, so it costs nothing while
-the app sits in the tray or a game is running.
+- **The player count asks Steam twice at most** (`SteamPlayerCountService`), when the window opens, the game
+is switched, the window comes back from the tray or the user presses Refresh. It never runs on a timer, so it
+costs nothing while the app sits in the tray or a game is running. `GetNumberOfCurrentPlayers` comes first, but
+Valve answers `result: 42` with no count for some games, Deadlock among them, so the list behind Steam's most
+played charts (`GetGamesByConcurrentPlayers`) is asked next and the game is looked up in it by app ID. A game
+outside the top 100 has no count anywhere, and then nothing is shown rather than another game's number.
 - **Releases are built by `.github/workflows/release.yml`.** Publishing a GitHub release builds both zips
 on a Windows runner (the exe only gets its icon there), checks their contents and the Linux script's line
 endings, writes `SHA256SUMS.txt`, attests the zips and attaches everything. The tag must be `v` followed
