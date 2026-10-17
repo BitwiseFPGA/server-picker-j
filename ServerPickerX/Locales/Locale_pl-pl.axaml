@@ -98,4 +98,5 @@
   <x:String x:Key="PlayerCountToolTip">Liczba osób grających teraz w tę grę na całym świecie, według Steam</x:String>
   <x:String x:Key="LateNightNoticeDialogue">U ciebie jest późno, więc w pobliżu gra mniej osób. Gdy większość serwerów jest zablokowana, znalezienie meczu może potrwać dłużej. To normalne i nie jest winą aplikacji. Jeśli kolejka jest zbyt długa, odblokuj kilka serwerów w pobliżu.</x:String>
   <x:String x:Key="DontShowAgain">Nie pokazuj ponownie</x:String>
+  <x:String x:Key="OkDontAskAgain">Ok, nie pytaj ponownie</x:String>
 </ResourceDictionary>

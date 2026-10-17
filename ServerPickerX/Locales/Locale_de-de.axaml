@@ -98,4 +98,5 @@
   <x:String x:Key="PlayerCountToolTip">Spielen dieses Spiel gerade, weltweit, laut Steam</x:String>
   <x:String x:Key="LateNightNoticeDialogue">Bei dir ist es spät, deshalb spielen in deiner Nähe weniger Leute. Wenn die meisten Server gesperrt sind, kann die Spielersuche länger dauern. Das ist normal und liegt nicht an der App. Wenn die Warteschlange zu lang wird, gib ein paar Server in deiner Nähe frei.</x:String>
   <x:String x:Key="DontShowAgain">Nicht mehr anzeigen</x:String>
+  <x:String x:Key="OkDontAskAgain">Ok, nicht mehr fragen</x:String>
 </ResourceDictionary>

@@ -1096,13 +1096,7 @@ namespace ServerPickerX.Views
                 return;
             }
 
-            bool result = await _messageBoxService.ShowMessageBoxConfirmationAsync(
-                    _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
-                    _localizationService.GetLocaleValue("SwapGameModeUnblockAllConflict"),
-                    MsBox.Avalonia.Enums.Icon.Setting
-                    );
-
-            if (!result)
+            if (!await ConfirmGameSwitchAsync())
             {
                 // Revert back selection without triggering event handler
                 GameModeComboBox.SelectionChanged -= GameModeComboBox_SelectionChanged;
@@ -1128,6 +1122,43 @@ namespace ServerPickerX.Views
             {
                 _gameSwitching = false;
             }
+        }
+
+        // Switching games clears this game's rules first, so the user is warned before it
+        // happens. Someone who switches often can turn the warning off, and the switch then
+        // goes ahead straight away. It still unblocks either way, the app just stops saying so
+        private async Task<bool> ConfirmGameSwitchAsync()
+        {
+            if (_jsonSetting.game_switch_notice_hidden)
+            {
+                return true;
+            }
+
+            string okDontAskAgain = _localizationService.GetLocaleValue("OkDontAskAgain");
+
+            string choice = await _messageBoxService.ShowMessageBoxChoiceAsync(
+                _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
+                _localizationService.GetLocaleValue("SwapGameModeUnblockAllConflict"),
+                ["Ok", okDontAskAgain, "Cancel"],
+                MsBox.Avalonia.Enums.Icon.Setting
+                );
+
+            // Checked first, so a translation that happens to read "Ok" cannot turn the
+            // plain Ok button into the one that stops asking
+            if (choice == "Ok")
+            {
+                return true;
+            }
+
+            if (choice == okDontAskAgain)
+            {
+                await _jsonSetting.SetGameSwitchNoticeHiddenAsync(true);
+
+                return true;
+            }
+
+            // Closing the dialog without choosing counts as not switching
+            return false;
         }
 
         private async Task HandlePresetChangeAsync(

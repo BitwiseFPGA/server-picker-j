@@ -98,4 +98,5 @@
   <x:String x:Key="PlayerCountToolTip">Steam'e göre şu anda dünya genelinde bu oyunu oynayanlar</x:String>
   <x:String x:Key="LateNightNoticeDialogue">Bulunduğun yerde saat geç, bu yüzden yakınında daha az kişi oynuyor. Sunucuların çoğu engelliyken maç bulmak daha uzun sürebilir. Bu normaldir ve uygulamadan kaynaklanmaz. Sıra çok uzarsa yakınındaki birkaç sunucunun engelini kaldır.</x:String>
   <x:String x:Key="DontShowAgain">Bir daha gösterme</x:String>
+  <x:String x:Key="OkDontAskAgain">Ok, bir daha sorma</x:String>
 </ResourceDictionary>

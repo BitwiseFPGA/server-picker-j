@@ -68,6 +68,10 @@ namespace ServerPickerX.Settings
 
         public virtual string late_night_notice_last_shown { get; set; } = string.Empty;
 
+        // The warning that switching games unblocks everything first, until the user picks
+        // "Ok, don't ask again". Switching still unblocks, the app just stops asking
+        public virtual bool game_switch_notice_hidden { get; set; } = false;
+
         [JsonIgnore]
         public readonly string jsonFilePath = ResolveSettingsPath();
 
@@ -168,6 +172,7 @@ namespace ServerPickerX.Settings
                 auto_apply_on_game_launch = localSettings.auto_apply_on_game_launch;
                 late_night_notice_hidden = localSettings.late_night_notice_hidden;
                 late_night_notice_last_shown = localSettings.late_night_notice_last_shown ?? string.Empty;
+                game_switch_notice_hidden = localSettings.game_switch_notice_hidden;
                 last_server_readings = localSettings.last_server_readings != null
                     ? new Dictionary<string, Dictionary<string, string>>(localSettings.last_server_readings, StringComparer.OrdinalIgnoreCase)
                     : new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
@@ -383,6 +388,13 @@ namespace ServerPickerX.Settings
             {
                 late_night_notice_hidden = true;
             }
+
+            await SaveSettingsAsync();
+        }
+
+        public async Task SetGameSwitchNoticeHiddenAsync(bool hidden)
+        {
+            game_switch_notice_hidden = hidden;
 
             await SaveSettingsAsync();
         }
