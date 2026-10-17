@@ -1,23 +1,17 @@
-using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
-using ServerPickerX.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 
 namespace ServerPickerX.Models
 {
     public partial class PresetServerModel : ObservableObject
     {
-        private static readonly Dictionary<string, string> FlagSortKeyCache = new(StringComparer.OrdinalIgnoreCase);
-
         public ServerModel ServerModel { get; }
 
         public string Key { get; }
 
         public string Flag => ServerModel.Flag;
 
-        public string FlagSortKey { get; }
+        // One image per country, so the path alone groups servers by flag
+        public string FlagSortKey => ServerModel.Flag;
 
         public string Name => ServerModel.Name;
 
@@ -40,36 +34,6 @@ namespace ServerPickerX.Models
             ServerModel = serverModel;
             Key = key;
             IsBlocked = isBlocked;
-            FlagSortKey = GetFlagSortKey(serverModel.Flag);
-        }
-
-        private static string GetFlagSortKey(string flagPath)
-        {
-            if (string.IsNullOrWhiteSpace(flagPath))
-            {
-                return string.Empty;
-            }
-
-            if (FlagSortKeyCache.TryGetValue(flagPath, out string? cachedValue))
-            {
-                return cachedValue;
-            }
-
-            try
-            {
-                using var stream = AssetLoader.Open(ResourceHelper.CreateResourceUriFromPath(flagPath));
-                byte[] hash = SHA256.HashData(stream);
-                string flagSortKey = Convert.ToHexString(hash);
-                FlagSortKeyCache[flagPath] = flagSortKey;
-
-                return flagSortKey;
-            }
-            catch
-            {
-                FlagSortKeyCache[flagPath] = flagPath;
-
-                return flagPath;
-            }
         }
     }
 }

@@ -31,7 +31,7 @@ body:
     attributes:
       label: App version
       description: Shown at the bottom of the Settings window.
-      placeholder: "2.0.1"
+      placeholder: "2.1.0"
     validations:
       required: true
   - type: dropdown

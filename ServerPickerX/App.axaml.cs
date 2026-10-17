@@ -10,6 +10,7 @@ using ServerPickerX.Services.Games;
 using ServerPickerX.Services.Localizations;
 using ServerPickerX.Services.Loggers;
 using ServerPickerX.Services.MessageBoxes;
+using ServerPickerX.Services.Players;
 using ServerPickerX.Services.Processes;
 using ServerPickerX.Services.Servers;
 using ServerPickerX.Services.SystemFirewalls;
@@ -44,6 +45,7 @@ namespace ServerPickerX
             serviceCollection.AddSingleton<IVersionService, VersionService>();
             serviceCollection.AddSingleton<JsonSetting>();
             serviceCollection.AddSingleton<HttpClient>();
+            serviceCollection.AddSingleton<IPlayerCountService, SteamPlayerCountService>();
 
             // Register a provider that loads definitions once and expose it as a singleton
             serviceCollection.AddSingleton<ServerDefinitionProvider>();

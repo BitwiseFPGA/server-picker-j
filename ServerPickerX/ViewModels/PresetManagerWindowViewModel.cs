@@ -106,6 +106,7 @@ namespace ServerPickerX.ViewModels
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
                     .ToList(),
+                KnownServerKeys = GetServerKeysForView(isClustered),
             };
 
             await _jsonSetting.AddOrUpdatePresetAsync(ClonePreset(newPreset));
@@ -258,12 +259,31 @@ namespace ServerPickerX.ViewModels
                 return;
             }
 
-            SelectedPresetItem.BlockedServerKeys = PresetServers
-                .Where(serverItem => serverItem.IsBlocked)
+            HashSet<string> listedServerKeys = PresetServers
                 .Select(serverItem => serverItem.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            // A server Valve has taken away for a while is not listed, it keeps what the preset
+            // said about it so it comes back the way the user left it
+            SelectedPresetItem.BlockedServerKeys = (SelectedPresetItem.BlockedServerKeys ?? [])
+                .Where(serverKey => !listedServerKeys.Contains(serverKey))
+                .Concat(PresetServers
+                    .Where(serverItem => serverItem.IsBlocked)
+                    .Select(serverItem => serverItem.Key))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
+            // Every server listed in the editor has now been seen, so only servers Valve
+            // adds after this save count as new to the preset
+            if (listedServerKeys.Count > 0)
+            {
+                SelectedPresetItem.KnownServerKeys = (SelectedPresetItem.KnownServerKeys ?? [])
+                    .Concat(listedServerKeys)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
 
             await _jsonSetting.AddOrUpdatePresetAsync(ClonePreset(SelectedPresetItem));
             await ClearAppliedPresetReferenceIfNeededAsync(SelectedPresetItem.Name);
@@ -281,6 +301,19 @@ namespace ServerPickerX.ViewModels
                 serverItem.IsAllowed = isAllowed;
             }
 
+            // Every server in this preset, also the ones Valve has taken away for a while, so
+            // they come back allowed or blocked like the rest
+            if (isAllowed)
+            {
+                SelectedPresetItem.BlockedServerKeys = [];
+            }
+            else
+            {
+                SelectedPresetItem.BlockedServerKeys = (SelectedPresetItem.BlockedServerKeys ?? [])
+                    .Concat(SelectedPresetItem.KnownServerKeys ?? [])
+                    .ToList();
+            }
+
             await PersistSelectedPresetServerKeysAsync();
         }
 
@@ -291,7 +324,9 @@ namespace ServerPickerX.ViewModels
                 return;
             }
 
-            bool hasBlockedEntries = (SelectedPresetItem.BlockedServerKeys?.Count ?? 0) > 0;
+            // Servers new to the preset count too, they are blocked by it even though not listed
+            bool hasBlockedEntries = (SelectedPresetItem.BlockedServerKeys?.Count ?? 0) > 0
+                || PresetServers.Any(serverItem => serverItem.IsBlocked);
 
             if (hasBlockedEntries)
             {
@@ -309,6 +344,7 @@ namespace ServerPickerX.ViewModels
 
             SelectedPresetItem.IsClustered = !SelectedPresetItem.IsClustered;
             SelectedPresetItem.BlockedServerKeys = [];
+            SelectedPresetItem.KnownServerKeys = GetServerKeysForView(SelectedPresetItem.IsClustered);
             EditorIsClustered = SelectedPresetItem.IsClustered;
 
             await _jsonSetting.AddOrUpdatePresetAsync(ClonePreset(SelectedPresetItem));
@@ -394,14 +430,12 @@ namespace ServerPickerX.ViewModels
                 return;
             }
 
-            HashSet<string> blockedServerKeys = (SelectedPresetItem.BlockedServerKeys ?? [])
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
             foreach (ServerModel serverModel in _mainVm.GetCurrentGameServerModels(SelectedPresetItem.IsClustered))
             {
                 string serverKey = _mainVm.GetServerKey(serverModel, SelectedPresetItem.IsClustered);
 
-                PresetServers.Add(new PresetServerModel(serverModel, serverKey, blockedServerKeys.Contains(serverKey)));
+                // A server that is new to the preset shows as not allowed until the user ticks it
+                PresetServers.Add(new PresetServerModel(serverModel, serverKey, SelectedPresetItem.BlocksServer(serverKey)));
             }
         }
 
@@ -464,12 +498,35 @@ namespace ServerPickerX.ViewModels
             }
         }
 
-        // Builds the shareable code for the highlighted preset
+        // Builds the shareable code for the highlighted preset. It carries what the preset blocks
+        // today, servers new to it included, in the format older versions still read
         public string? ExportSelectedPresetCode()
         {
-            return SelectedPresetItem == null
-                ? null
-                : PresetShareCode.Encode(SelectedPresetItem);
+            if (SelectedPresetItem == null)
+            {
+                return null;
+            }
+
+            PresetModel preset = SelectedPresetItem;
+
+            // Listed servers the preset blocks, servers new to it included. Without a loaded
+            // server list this adds nothing and the code carries the blocked list, as before
+            IEnumerable<string> listedServersItBlocks = (GetServerKeysForView(preset.IsClustered) ?? [])
+                .Where(preset.BlocksServer);
+
+            PresetModel sharedPreset = new()
+            {
+                Name = preset.Name,
+                GameMode = preset.GameMode,
+                IsClustered = preset.IsClustered,
+                BlockedServerKeys = (preset.BlockedServerKeys ?? [])
+                    .Concat(listedServersItBlocks)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
+            };
+
+            return PresetShareCode.Encode(sharedPreset);
         }
 
         // Adds a preset decoded from a pasted code. Existing presets are never
@@ -489,6 +546,10 @@ namespace ServerPickerX.ViewModels
             }
 
             importedPreset.Name = GetAvailablePresetName(importedPreset.Name);
+
+            // A code only lists blocked servers, so the imported preset starts out knowing
+            // today's servers and blocks whatever Valve adds after this
+            importedPreset.KnownServerKeys = GetServerKeysForView(importedPreset.IsClustered);
 
             await _jsonSetting.AddOrUpdatePresetAsync(ClonePreset(importedPreset));
 
@@ -553,7 +614,26 @@ namespace ServerPickerX.ViewModels
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
                     .ToList(),
+                KnownServerKeys = preset.KnownServerKeys?
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
+                    .ToList(),
                 };
+        }
+
+        // Every server key the current game has in that view, what a preset saved now knows about.
+        // Null when no server list is loaded, so the preset learns it on the next load instead of
+        // knowing nothing and blocking every server
+        private List<string>? GetServerKeysForView(bool isClustered)
+        {
+            List<string> serverKeys = _mainVm.GetCurrentGameServerModels(isClustered)
+                .Select(serverModel => _mainVm.GetServerKey(serverModel, isClustered))
+                .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return serverKeys.Count > 0 ? serverKeys : null;
         }
     }
 }

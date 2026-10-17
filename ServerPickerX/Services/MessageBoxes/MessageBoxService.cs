@@ -22,6 +22,26 @@ namespace ServerPickerX.Services.MessageBoxes
             _processService = processService;
         }
 
+        // A dialog owned by a hidden or minimized window never reaches the user and the code
+        // waiting on it never resumes. Tray actions and auto apply run with the window hidden,
+        // so anything they need to say brings the window back first
+        private static MainWindow GetVisibleOwner()
+        {
+            MainWindow owner = MainWindow.Instance!;
+
+            if (!owner.IsVisible)
+            {
+                owner.Show();
+            }
+
+            if (owner.WindowState == Avalonia.Controls.WindowState.Minimized)
+            {
+                owner.WindowState = Avalonia.Controls.WindowState.Normal;
+            }
+
+            return owner;
+        }
+
         public async Task ShowMessageBoxAsync(string title, string text, Icon icon = Icon.Info)
         {
             try
@@ -42,7 +62,7 @@ namespace ServerPickerX.Services.MessageBoxes
 
                 var box = MessageBoxManager.GetMessageBoxCustom(customMbsParams);
 
-                await box.ShowWindowDialogAsync(MainWindow.Instance!);
+                await box.ShowWindowDialogAsync(GetVisibleOwner());
             }
             catch (Exception ex)
             {
@@ -71,7 +91,7 @@ namespace ServerPickerX.Services.MessageBoxes
 
                 var box = MessageBoxManager.GetMessageBoxCustom(customMbsParams);
 
-                var result = await box.ShowWindowDialogAsync(MainWindow.Instance!);
+                var result = await box.ShowWindowDialogAsync(GetVisibleOwner());
 
                 return result == "Ok";
             }
@@ -102,7 +122,7 @@ namespace ServerPickerX.Services.MessageBoxes
 
                 var box = MessageBoxManager.GetMessageBoxCustom(customMbsParams);
 
-                return await box.ShowWindowDialogAsync(MainWindow.Instance!) ?? string.Empty;
+                return await box.ShowWindowDialogAsync(GetVisibleOwner()) ?? string.Empty;
             }
             catch (Exception ex)
             {
@@ -133,7 +153,7 @@ namespace ServerPickerX.Services.MessageBoxes
 
                 var box = MessageBoxManager.GetMessageBoxCustom(customMbsParams);
 
-                var result = await box.ShowWindowDialogAsync(MainWindow.Instance!);
+                var result = await box.ShowWindowDialogAsync(GetVisibleOwner());
 
                 if (result != "Ok")
                 {

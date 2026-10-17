@@ -8,6 +8,7 @@ using ServerPickerX.Services.DependencyInjection;
 using ServerPickerX.Services.Localizations;
 using ServerPickerX.Services.Loggers;
 using ServerPickerX.Services.MessageBoxes;
+using ServerPickerX.Services.Players;
 using ServerPickerX.Services.Servers;
 using ServerPickerX.Services.SystemFirewalls;
 using ServerPickerX.Settings;
@@ -15,8 +16,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -85,6 +86,14 @@ namespace ServerPickerX.ViewModels
         [NotifyPropertyChangedFor(nameof(FilteredServerModels))]
         public bool sortDescending = false;
 
+        // How many people are playing the selected game right now, worldwide. Empty until
+        // Steam answers, and the view model is rebuilt for each game so it never carries over
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasPlayerCount))]
+        public string playerCount = string.Empty;
+
+        public bool HasPlayerCount => !string.IsNullOrEmpty(PlayerCount);
+
         // Dependent/Computed prop for main UI buttons `IsEnabled` state
         public bool IsOperationAllowed => !PendingOperation && ServerModelsInitialized;
 
@@ -103,6 +112,7 @@ namespace ServerPickerX.ViewModels
         private readonly IServerDataService _serverDataService;
         private readonly ISystemFirewallService _systemFirewallService;
         private readonly JsonSetting _jsonSetting;
+        private readonly IPlayerCountService? _playerCountService;
 
         // Parameterless constructor, allows design previewer to instantiate this class since it doesn't support DI
         public MainWindowViewModel()
@@ -113,6 +123,7 @@ namespace ServerPickerX.ViewModels
             _serverDataService = ServiceLocator.GetRequiredService<IServerDataService>();
             _systemFirewallService = ServiceLocator.GetRequiredService<ISystemFirewallService>();
             _jsonSetting = ServiceLocator.GetRequiredService<JsonSetting>();
+            _playerCountService = ServiceLocator.GetService<IPlayerCountService>();
         }
 
         // DI constructor, allows inversion of control and unit tests mocking
@@ -122,7 +133,8 @@ namespace ServerPickerX.ViewModels
             ILocalizationService localizationService,
             IServerDataService serverDataService,
             ISystemFirewallService systemFirewallService,
-            JsonSetting jsonSetting
+            JsonSetting jsonSetting,
+            IPlayerCountService? playerCountService = null
             )
         {
             _loggerService = loggerService;
@@ -131,6 +143,7 @@ namespace ServerPickerX.ViewModels
             _serverDataService = serverDataService;
             _systemFirewallService = systemFirewallService;
             _jsonSetting = jsonSetting;
+            _playerCountService = playerCountService;
         }
 
         public async Task LoadServersAsync()
@@ -294,6 +307,25 @@ namespace ServerPickerX.ViewModels
             await _jsonSetting.SetLastSelectedPresetNameByGameModeAsync(preset.Name);
 
             return true;
+        }
+
+        // Asks Steam once. Called when the window opens or the user refreshes, never on a timer
+        public async Task RefreshPlayerCountAsync(string appId)
+        {
+            if (_playerCountService == null)
+            {
+                return;
+            }
+
+            int? playerCount = await _playerCountService.GetCurrentPlayerCountAsync(appId);
+
+            // A failed check keeps the last number instead of making it flicker away
+            if (playerCount == null)
+            {
+                return;
+            }
+
+            PlayerCount = playerCount.Value.ToString("N0", CultureInfo.CurrentCulture);
         }
 
         [RelayCommand]
@@ -526,80 +558,21 @@ namespace ServerPickerX.ViewModels
             return _serverDataService;
         }
 
-        public async Task<bool> PruneCurrentGamePresetEntriesAsync()
+        // Presets from older versions learn today's server list once, see PresetModel.KnownServerKeys
+        public async Task InitializePresetServerListsAsync()
         {
             if (!ServersLoaded)
             {
-                return false;
+                return;
             }
 
-            return await PrunePresetEntriesAsync(_jsonSetting.game_mode, _serverDataService.GetServerData());
-        }
+            ServerData serverData = _serverDataService.GetServerData();
 
-        public async Task<bool> PruneRelatedGamePresetEntriesAsync()
-        {
-            ServerDefinitionProvider serverDefinitionProvider =
-                ServiceLocator.GetRequiredService<ServerDefinitionProvider>();
-
-            string appId = serverDefinitionProvider.GetAppIdByGameMode(_jsonSetting.game_mode);
-
-            IReadOnlyList<string> relatedGameModes = serverDefinitionProvider.GetGameModesByAppId(appId);
-
-            foreach (string relatedGameMode in relatedGameModes.Where(gameMode =>
-                         !gameMode.Equals(_jsonSetting.game_mode, StringComparison.OrdinalIgnoreCase)))
-            {
-                IServerDataService relatedServerDataService = CreateConfiguredServerDataService(relatedGameMode);
-
-                if (!await relatedServerDataService.LoadServersAsync())
-                {
-                    return false;
-                }
-
-                await PrunePresetEntriesAsync(relatedGameMode, relatedServerDataService.GetServerData());
-            }
-
-            return true;
-        }
-
-        private IServerDataService CreateConfiguredServerDataService(string gameMode)
-        {
-            ServerDefinitionProvider serverDefinitionProvider =
-                ServiceLocator.GetRequiredService<ServerDefinitionProvider>();
-            ServerDefinition? serverDefinition = serverDefinitionProvider.GetServerDefinitionByGameMode(gameMode);
-
-            if (serverDefinition == null)
-            {
-                throw new InvalidOperationException($"Unsupported game mode: {gameMode}");
-            }
-
-            HttpClient httpClient = ServiceLocator.GetRequiredService<HttpClient>();
-
-            return new ConfiguredServerDataService(
-                serverDefinition,
-                _loggerService,
-                _messageBoxService,
-                httpClient
+            await _jsonSetting.InitializeKnownServerKeysByGameModeAsync(
+                _jsonSetting.game_mode,
+                serverData.ClusteredServers.Select(serverModel => serverModel.Description).ToList(),
+                serverData.UnclusteredServers.Select(serverModel => serverModel.Name).ToList()
                 );
-        }
-
-        public async Task<bool> PrunePresetEntriesAsync(string gameMode, ServerData serverData)
-        {
-            HashSet<string> clusteredServerKeys = serverData.ClusteredServers
-                .Select(serverModel => serverModel.Description)
-                .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey))
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            HashSet<string> unclusteredServerKeys = serverData.UnclusteredServers
-                .Select(serverModel => serverModel.Name)
-                .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey))
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            bool presetsPruned = await _jsonSetting.PrunePresetEntriesByGameModeAsync(
-                gameMode,
-                clusteredServerKeys,
-                unclusteredServerKeys
-                );
-
-            return presetsPruned;
         }
 
         private IEnumerable<ServerModel> SortServerModels(IEnumerable<ServerModel> serverModels)
@@ -824,12 +797,11 @@ namespace ServerPickerX.ViewModels
             return await PerformOperationAsync(true, matchingServerModels, false);
         }
 
+        // The servers the preset blocks, including any Valve added after the preset was saved
         private ObservableCollection<ServerModel> GetMatchingServerModels(PresetModel serverPreset)
         {
             return new ObservableCollection<ServerModel>(
-                ServerModels.Where(serverModel =>
-                    serverPreset.BlockedServerKeys
-                        .Contains(GetServerKey(serverModel), StringComparer.OrdinalIgnoreCase))
+                ServerModels.Where(serverModel => serverPreset.BlocksServer(GetServerKey(serverModel)))
                 );
         }
 

@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">选择语言</x:String>
   <x:String x:Key="ResetFirewallToolTip">删除本应用创建的所有防火墙规则</x:String>
   <x:String x:Key="MessageBoxInfoTitle">信息</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Valve 刚刚更新了服务器数据。所有被屏蔽的服务器都将被解除屏蔽，以便同步新的服务器数据。对于已不存在的服务器，其预设条目将被移除，并且如果可用，最后选中的预设将被重新应用。</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Valve 刚刚更新了服务器数据。所有被屏蔽的服务器都将被解除屏蔽，以便同步新的服务器数据。你的预设会保留原有选择，新服务器在你允许之前会一直被屏蔽；如果可用，最后选中的预设将被重新应用。</x:String>
   <x:String x:Key="NewVersionDialogue">新版本已发布！前往发布页面？</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">嘿！请至少选择一个服务器进行屏蔽。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">嘿！请至少选择一个服务器进行解锁。</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">重新启动应用程序以使更改生效。</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">游戏启动时应用预设</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">游戏启动时应用该游戏最近使用的预设，游戏关闭后解除所有封锁</x:String>
+  <x:String x:Key="StatusPlaying">人在玩</x:String>
+  <x:String x:Key="PlayerCountToolTip">据 Steam 统计，全球当前正在玩此游戏的人数</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">你所在的地区已是深夜，附近在玩的人更少。屏蔽了大部分服务器时，匹配可能需要更长时间。这是正常现象，并非应用造成。如果排队时间太长，请解除屏蔽几个离你较近的服务器。</x:String>
+  <x:String x:Key="DontShowAgain">不再显示</x:String>
 </ResourceDictionary>

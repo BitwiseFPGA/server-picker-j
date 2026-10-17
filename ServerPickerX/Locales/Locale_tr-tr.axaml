@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Dil seç</x:String>
   <x:String x:Key="ResetFirewallToolTip">Bu uygulamanın oluşturduğu tüm güvenlik duvarı kurallarını sil</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Bilgi</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Sunucu verileri Valve tarafından güncellendi! Yeni sunucu verilerini senkronize etmek için tüm engellenen sunucuların engelleri kaldırılacak. Artık mevcut olmayan sunuculara ait preset girdileri kaldırılacak ve varsa son seçilen preset yeniden uygulanacak.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Sunucu verileri Valve tarafından güncellendi! Yeni sunucu verilerini senkronize etmek için tüm engellenen sunucuların engelleri kaldırılacak. Presetlerindeki seçimler korunur ve yeni sunucular sen izin verene kadar engelli kalır. Varsa son seçilen preset yeniden uygulanacak.</x:String>
   <x:String x:Key="NewVersionDialogue">Yeni sürüm yayınlandı! Güncelle?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Lütfen engellenecek en az bir sunucu seç</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Lütfen engeli kaldırılacak en az bir sunucu seçin</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Değişikliklerin geçerli olması için uygulamayı yeniden başlatın.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Oyun başlayınca ön ayarı uygula</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Oyun açıldığında bu oyunun son kullanılan ön ayarını uygular, oyun kapandığında tüm engelleri kaldırır</x:String>
+  <x:String x:Key="StatusPlaying">oynuyor</x:String>
+  <x:String x:Key="PlayerCountToolTip">Steam'e göre şu anda dünya genelinde bu oyunu oynayanlar</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">Bulunduğun yerde saat geç, bu yüzden yakınında daha az kişi oynuyor. Sunucuların çoğu engelliyken maç bulmak daha uzun sürebilir. Bu normaldir ve uygulamadan kaynaklanmaz. Sıra çok uzarsa yakınındaki birkaç sunucunun engelini kaldır.</x:String>
+  <x:String x:Key="DontShowAgain">Bir daha gösterme</x:String>
 </ResourceDictionary>

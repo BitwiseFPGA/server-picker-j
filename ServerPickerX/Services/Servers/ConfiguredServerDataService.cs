@@ -1,3 +1,4 @@
+using ServerPickerX.Helpers;
 using ServerPickerX.Models;
 using ServerPickerX.Services.Loggers;
 using ServerPickerX.Services.MessageBoxes;
@@ -80,7 +81,7 @@ namespace ServerPickerX.Services.Servers
 
                 var serverModel = new ServerModel
                 {
-                    Flag = "/Assets/flags/" + serverDescription + $" ({server.Key}).png",
+                    Flag = FlagResolver.GetFlagPath(serverDescription),
                     Name = server.Key,
                     Description = serverDescription,
                 };

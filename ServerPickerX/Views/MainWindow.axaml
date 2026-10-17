@@ -152,8 +152,7 @@
                                 Click="PresetsBtn_Click" />
                         <Button x:Name="RefreshBtn"
                                 Classes="main-btn"
-                                Command="{Binding PingServers}"
-                                CommandParameter="{Binding ServerModels}"
+                                Click="RefreshBtn_Click"
                                 IsEnabled="{Binding IsOperationAllowed}"
                                 Content="{DynamicResource Refresh}"
                                 ToolTip.Tip="{DynamicResource RefreshToolTip}"
@@ -202,6 +201,16 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Spacing="5">
+                        <!-- Worldwide player count from Steam, hidden until Steam answers -->
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="5"
+                                    IsVisible="{Binding HasPlayerCount}"
+                                    ToolTip.Tip="{DynamicResource PlayerCountToolTip}"
+                                    ToolTip.ShowDelay="300">
+                            <TextBlock Classes="mono muted" Text="{Binding PlayerCount}" />
+                            <TextBlock Classes="faint" FontSize="11" VerticalAlignment="Center" Text="{DynamicResource StatusPlaying}" />
+                            <TextBlock Classes="faint" FontSize="11" VerticalAlignment="Center" Margin="4,0" Text="&#183;" />
+                        </StackPanel>
                         <TextBlock Classes="mono muted" Text="{Binding BlockedServerCount}" />
                         <TextBlock Classes="faint" FontSize="11" VerticalAlignment="Center" Text="{DynamicResource StatusBlocked}" />
                     </StackPanel>
@@ -293,7 +302,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding IsOperationAllowed}"
-                            Command="{Binding BlockAllAsync}"
+                            Click="BlockAllBtn_Click"
                             Content="{DynamicResource BlockAll}"
                             ToolTip.Tip="{DynamicResource BlockAllToolTip}"
                             ToolTip.ShowDelay="300"

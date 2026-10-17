@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Sprache auswählen</x:String>
   <x:String x:Key="ResetFirewallToolTip">Alle von dieser App erstellten Firewallregeln löschen</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Die Serverdaten wurden gerade von Valve aktualisiert! Alle blockierten Server werden entsperrt, um die neuen Serverdaten zu synchronisieren. Preset-Einträge für Server, die nicht mehr existieren, werden entfernt, und das zuletzt ausgewählte Preset wird erneut angewendet, falls verfügbar.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Die Serverdaten wurden gerade von Valve aktualisiert! Alle blockierten Server werden entsperrt, um die neuen Serverdaten zu synchronisieren. Deine Presets behalten ihre Auswahl und blockieren neue Server, bis du sie erlaubst, und das zuletzt ausgewählte Preset wird erneut angewendet, falls verfügbar.</x:String>
   <x:String x:Key="NewVersionDialogue">Neue Version verfügbar! Zu den Veröffentlichungen?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hey! Bitte wähle mindestens einen Server zum Blockieren aus.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Bitte wählen Sie mindestens einen Server aus, um die Entsperrung aufzuheben.</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Starten Sie die Anwendung neu, damit die Änderungen wirksam werden.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Voreinstellung beim Spielstart anwenden</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Wendet beim Spielstart die zuletzt genutzte Voreinstellung dieses Spiels an und hebt beim Beenden alle Sperren wieder auf</x:String>
+  <x:String x:Key="StatusPlaying">spielen</x:String>
+  <x:String x:Key="PlayerCountToolTip">Spielen dieses Spiel gerade, weltweit, laut Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">Bei dir ist es spät, deshalb spielen in deiner Nähe weniger Leute. Wenn die meisten Server gesperrt sind, kann die Spielersuche länger dauern. Das ist normal und liegt nicht an der App. Wenn die Warteschlange zu lang wird, gib ein paar Server in deiner Nähe frei.</x:String>
+  <x:String x:Key="DontShowAgain">Nicht mehr anzeigen</x:String>
 </ResourceDictionary>

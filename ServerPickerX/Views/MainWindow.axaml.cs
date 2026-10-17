@@ -47,6 +47,10 @@ namespace ServerPickerX.Views
         private DispatcherTimer? _autoRefreshTimer;
         private DispatcherTimer? _gameWatcherTimer;
         private TrayIcon? _trayIcon;
+        private NativeMenu? _trayMenu;
+        private bool _trayActionRunning;
+        private bool _gameSwitching;
+        private DateTime _playerCountCheckedAt = DateTime.MinValue;
         private bool _isExiting;
         private bool _blockedExitPromptAnswered;
 
@@ -159,7 +163,11 @@ namespace ServerPickerX.Views
 
             e.Handled = true;
 
+            int blockedBefore = vm.BlockedServerCount;
+
             await vm.ToggleServerBlockAsync(serverModel);
+
+            await ShowLateNightNoticeIfNeededAsync(vm, blockedBefore);
         }
 
         private void PingServerMenuItem_Click(object? sender, RoutedEventArgs e)
@@ -182,7 +190,38 @@ namespace ServerPickerX.Views
                 return;
             }
 
+            int blockedBefore = vm.BlockedServerCount;
+
             await vm.BlockSlowerThanAsync(serverModel);
+
+            await ShowLateNightNoticeIfNeededAsync(vm, blockedBefore);
+        }
+
+        private async void BlockAllBtn_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is not MainWindowViewModel vm)
+            {
+                return;
+            }
+
+            int blockedBefore = vm.BlockedServerCount;
+
+            await vm.BlockAllAsync();
+
+            await ShowLateNightNoticeIfNeededAsync(vm, blockedBefore);
+        }
+
+        // Re-pings the servers and asks Steam for a fresh player count
+        private void RefreshBtn_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is not MainWindowViewModel vm)
+            {
+                return;
+            }
+
+            vm.PingServers(vm.ServerModels);
+
+            _ = RefreshPlayerCountAsync(vm);
         }
 
         private void SortBtn_Click(object? sender, RoutedEventArgs e)
@@ -276,12 +315,17 @@ namespace ServerPickerX.Views
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
 
+            int blockedBefore = vm.BlockedServerCount;
+
             await presetManagementWindow.ShowDialog(this);
 
             // Reload presets after closing preset manager window
             vm.LoadPresetPickerItems();
             SyncPresetSelection(vm.SelectedPreset);
             RefreshClusterButtonContent();
+            RefreshTrayMenu();
+
+            await ShowLateNightNoticeIfNeededAsync(vm, blockedBefore);
         }
 
         public async Task InitializeApp()
@@ -302,9 +346,12 @@ namespace ServerPickerX.Views
 
             DataContext = vm;
 
+            _ = RefreshPlayerCountAsync(vm);
+
             if (vm.ServersLoaded)
             {
                 await SyncServersAsync(vm);
+                await vm.InitializePresetServerListsAsync();
                 vm.LoadPresetPickerItems();
                 await vm.RestoreLastSelectedPresetAsync();
             }
@@ -461,7 +508,7 @@ namespace ServerPickerX.Views
                 {
                     // Wait for the app to go idle rather than queueing firewall work behind a
                     // running operation. The transition is still there on the next tick
-                    if (!vm.ServersLoaded || !vm.IsOperationAllowed)
+                    if (!vm.ServersLoaded || !vm.IsOperationAllowed || _trayActionRunning)
                     {
                         return;
                     }
@@ -607,27 +654,24 @@ namespace ServerPickerX.Views
 
             if (_trayIcon != null)
             {
+                // Already there, only the menu has to catch up with the game and its presets
+                RefreshTrayMenu();
+
                 return;
             }
 
             try
             {
-                NativeMenuItem showItem = new(_localizationService.GetLocaleValue("TrayShow"));
-                showItem.Click += (_, _) => RestoreFromTray();
+                _trayMenu = new NativeMenu();
 
-                NativeMenuItem quitItem = new(_localizationService.GetLocaleValue("TrayQuit"));
-                quitItem.Click += (_, _) => ExitApplication();
-
-                NativeMenu trayMenu = new();
-                trayMenu.Add(showItem);
-                trayMenu.Add(quitItem);
+                RefreshTrayMenu();
 
                 _trayIcon = new TrayIcon
                 {
                     Icon = new WindowIcon(AssetLoader.Open(ResourceHelper.CreateResourceUriFromPath("/Assets/favicon.ico"))),
                     ToolTipText = "Deadlock Server Picker",
                     IsVisible = true,
-                    Menu = trayMenu
+                    Menu = _trayMenu
                 };
 
                 _trayIcon.Clicked += (_, _) => RestoreFromTray();
@@ -636,6 +680,142 @@ namespace ServerPickerX.Views
             {
                 // A desktop without a system tray just keeps the window on close
                 _trayIcon = null;
+                _trayMenu = null;
+            }
+        }
+
+        // Show, the current game's presets, Unblock All and Quit. Rebuilt when the game, the
+        // presets or the language change, so it never offers a preset that is gone
+        public void RefreshTrayMenu()
+        {
+            if (_trayMenu == null)
+            {
+                return;
+            }
+
+            _trayMenu.Items.Clear();
+
+            NativeMenuItem showItem = new(_localizationService.GetLocaleValue("TrayShow"));
+            showItem.Click += (_, _) => RestoreFromTray();
+            _trayMenu.Add(showItem);
+
+            _trayMenu.Add(new NativeMenuItemSeparator());
+
+            List<PresetModel> presets = _jsonSetting.GetPresetsByGameMode(_jsonSetting.game_mode);
+
+            if (presets.Count > 0)
+            {
+                NativeMenu presetMenu = new();
+
+                foreach (PresetModel preset in presets)
+                {
+                    string presetName = preset.Name;
+
+                    // A single underscore would be read as a keyboard shortcut marker and vanish
+                    NativeMenuItem presetItem = new(presetName.Replace("_", "__"));
+                    presetItem.Click += async (_, _) => await ApplyPresetFromTrayAsync(presetName);
+                    presetMenu.Add(presetItem);
+                }
+
+                NativeMenuItem presetsItem = new(_localizationService.GetLocaleValue("Presets"))
+                {
+                    Menu = presetMenu
+                };
+
+                _trayMenu.Add(presetsItem);
+            }
+
+            NativeMenuItem unblockAllItem = new(_localizationService.GetLocaleValue("UnblockAll"));
+            unblockAllItem.Click += async (_, _) => await UnblockAllFromTrayAsync();
+            _trayMenu.Add(unblockAllItem);
+
+            _trayMenu.Add(new NativeMenuItemSeparator());
+
+            NativeMenuItem quitItem = new(_localizationService.GetLocaleValue("TrayQuit"));
+            quitItem.Click += (_, _) => ExitApplication();
+            _trayMenu.Add(quitItem);
+        }
+
+        // A tray click while something is already running, or while the game is being switched,
+        // is ignored rather than queued, so it can never act on the wrong game's servers
+        private bool CanRunTrayAction(out MainWindowViewModel? vm)
+        {
+            vm = DataContext as MainWindowViewModel;
+
+            return !_trayActionRunning
+                && !_gameSwitching
+                && !_gameWatcherBusy
+                && vm != null
+                && vm.ServersLoaded
+                && vm.IsOperationAllowed;
+        }
+
+        private async Task ApplyPresetFromTrayAsync(string presetName)
+        {
+            if (!CanRunTrayAction(out MainWindowViewModel? vm) || vm == null)
+            {
+                return;
+            }
+
+            _trayActionRunning = true;
+
+            try
+            {
+                PresetModel? preset = vm.GetCurrentGamePreset(presetName);
+
+                if (preset == null)
+                {
+                    RefreshTrayMenu();
+
+                    return;
+                }
+
+                bool presetApplied = await vm.ApplyPresetAsync(preset);
+
+                if (!presetApplied)
+                {
+                    return;
+                }
+
+                SyncPresetSelection(vm.SelectedPreset);
+                RefreshClusterButtonContent();
+            }
+            catch (Exception)
+            {
+                // A click handler must never take the app down. Firewall errors are
+                // already reported by the view model itself
+            }
+            finally
+            {
+                _trayActionRunning = false;
+            }
+        }
+
+        private async Task UnblockAllFromTrayAsync()
+        {
+            if (!CanRunTrayAction(out MainWindowViewModel? vm) || vm == null)
+            {
+                return;
+            }
+
+            _trayActionRunning = true;
+
+            try
+            {
+                bool unblocked = await vm.UnblockAllAsync();
+
+                if (unblocked)
+                {
+                    SyncPresetSelection(vm.SelectedPreset);
+                }
+            }
+            catch (Exception)
+            {
+                // Same as above, reported by the view model when it is a firewall error
+            }
+            finally
+            {
+                _trayActionRunning = false;
             }
         }
 
@@ -649,6 +829,7 @@ namespace ServerPickerX.Views
             _trayIcon.IsVisible = false;
             _trayIcon.Dispose();
             _trayIcon = null;
+            _trayMenu = null;
         }
 
         private void RestoreFromTray()
@@ -658,6 +839,81 @@ namespace ServerPickerX.Views
             WindowState = WindowState.Normal;
 
             Activate();
+
+            // The count can be hours old after sitting in the tray. Not when the window only
+            // came back to ask about quitting
+            if (!_isExiting
+                && DataContext is MainWindowViewModel vm
+                && DateTime.UtcNow - _playerCountCheckedAt > TimeSpan.FromMinutes(1))
+            {
+                _ = RefreshPlayerCountAsync(vm);
+            }
+        }
+
+        private async Task RefreshPlayerCountAsync(MainWindowViewModel vm)
+        {
+            _playerCountCheckedAt = DateTime.UtcNow;
+
+            try
+            {
+                string appId = _serverDefinitionProvider.GetAppIdByGameMode(_jsonSetting.game_mode);
+
+                await vm.RefreshPlayerCountAsync(appId);
+            }
+            catch (InvalidOperationException)
+            {
+                // A game without a server definition has no Steam app to ask about
+            }
+        }
+
+        // Explains that late night queues are slow because fewer people play, not because of
+        // the app. Only follows a block done in this window, never auto apply or the tray,
+        // and shows at most once a day until the user picks "Don't show again"
+        private async Task ShowLateNightNoticeIfNeededAsync(MainWindowViewModel vm, int blockedBefore)
+        {
+            // Closed to the tray or minimized while the block was running, so not now
+            if (!IsVisible || WindowState == WindowState.Minimized)
+            {
+                return;
+            }
+
+            if (vm.BlockedServerCount <= blockedBefore)
+            {
+                return;
+            }
+
+            DateTime now = DateTime.Now;
+
+            bool shouldShow = LateNightNotice.ShouldShow(
+                now,
+                vm.BlockedServerCount,
+                vm.ServerModels.Count,
+                _jsonSetting.late_night_notice_hidden,
+                _jsonSetting.late_night_notice_last_shown
+                );
+
+            if (!shouldShow)
+            {
+                return;
+            }
+
+            string dateKey = LateNightNotice.ToDateKey(now);
+
+            // Saved before it shows, so blocking again while it is open cannot queue a second one
+            await _jsonSetting.SetLateNightNoticeShownAsync(dateKey, false);
+
+            string dontShowAgain = _localizationService.GetLocaleValue("DontShowAgain");
+
+            string choice = await _messageBoxService.ShowMessageBoxChoiceAsync(
+                _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
+                _localizationService.GetLocaleValue("LateNightNoticeDialogue"),
+                ["Ok", dontShowAgain]
+                );
+
+            if (choice == dontShowAgain)
+            {
+                await _jsonSetting.SetLateNightNoticeShownAsync(dateKey, true);
+            }
         }
 
         private void ExitApplication()
@@ -828,16 +1084,8 @@ namespace ServerPickerX.Views
                 return;
             }
 
-            await vm.PruneCurrentGamePresetEntriesAsync();
-
-            if (affectedGameModes.Count > 1)
-            {
-                if (!await vm.PruneRelatedGamePresetEntriesAsync())
-                {
-                    return;
-                }
-            }
-
+            // Presets are left as they are. A server Valve takes away for a while comes back the
+            // way the user left it, and one that is new starts out blocked (PresetModel.BlocksServer)
             await _jsonSetting.SetRevisionByGameModeAsync(fetchedRevision);
         }
 
@@ -864,13 +1112,22 @@ namespace ServerPickerX.Views
                 return;
             }
 
-            // Clear the currently loaded game rules before changing game mode while preserving last selected preset
-            await vm.UnblockAllAsync(shouldClearLastSelectedPreset: false);
+            _gameSwitching = true;
 
-            // Update json setting game mode and serialize it
-            await _jsonSetting.SetGameModeAsync((string)GameModeComboBox.SelectedItem);
+            try
+            {
+                // Clear the currently loaded game rules before changing game mode while preserving last selected preset
+                await vm.UnblockAllAsync(shouldClearLastSelectedPreset: false);
 
-            await InitializeApp();
+                // Update json setting game mode and serialize it
+                await _jsonSetting.SetGameModeAsync((string)GameModeComboBox.SelectedItem);
+
+                await InitializeApp();
+            }
+            finally
+            {
+                _gameSwitching = false;
+            }
         }
 
         private async Task HandlePresetChangeAsync(
@@ -888,6 +1145,8 @@ namespace ServerPickerX.Views
                 return;
             }
 
+            int blockedBefore = vm.BlockedServerCount;
+
             bool presetApplied = await vm.ApplyPresetAsync(selectedPreset);
 
             if (!presetApplied)
@@ -898,6 +1157,8 @@ namespace ServerPickerX.Views
 
             SyncPresetSelection(vm.SelectedPreset);
             RefreshClusterButtonContent();
+
+            await ShowLateNightNoticeIfNeededAsync(vm, blockedBefore);
         }
 
         private void SyncPresetSelection(PresetModel? preset)

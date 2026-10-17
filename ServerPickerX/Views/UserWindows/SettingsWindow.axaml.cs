@@ -196,5 +196,8 @@ public partial class SettingsWindow : Window
         await _jsonSetting.SetLanguageAsync(selectedLanguage);
 
         await _localizationService.SetLanguage(language);
+
+        // The tray menu is built from text, so it is rebuilt in the new language
+        Views.MainWindow.Instance?.RefreshTrayMenu();
     }
 }

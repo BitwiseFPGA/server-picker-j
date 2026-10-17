@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">言語を選択</x:String>
   <x:String x:Key="ResetFirewallToolTip">このアプリが作成したファイアウォールルールをすべて削除</x:String>
   <x:String x:Key="MessageBoxInfoTitle">情報</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Valve によってサーバーデータが更新されました。新しいサーバーデータと同期するために、ブロックされていたすべてのサーバーのブロックが解除されます。存在しなくなったサーバーのプリセット項目は削除され、可能であれば最後に選択したプリセットが再適用されます。</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Valve によってサーバーデータが更新されました。新しいサーバーデータと同期するために、ブロックされていたすべてのサーバーのブロックが解除されます。プリセットの選択内容はそのまま保持され、新しいサーバーは許可するまでブロックされます。可能であれば最後に選択したプリセットが再適用されます。</x:String>
   <x:String x:Key="NewVersionDialogue">新バージョンがリリースされました！リリース一覧へどうぞ。</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">こんにちは！ブロックするサーバーを少なくとも1つ選択してください。</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">ブロックを解除したいサーバーを少なくとも1つ選択してください。</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">変更を適用するには、アプリケーションを再起動してください。</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">ゲーム起動時にプリセットを適用</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">このゲームで最後に使用したプリセットを起動時に適用し、終了時にすべてのブロックを解除します</x:String>
+  <x:String x:Key="StatusPlaying">プレイ中</x:String>
+  <x:String x:Key="PlayerCountToolTip">Steam による、現在このゲームを世界中でプレイしている人数</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">お住まいの地域は深夜のため、近くでプレイしている人が少なくなっています。ほとんどのサーバーをブロックしていると、マッチングに時間がかかることがあります。これは正常な動作で、アプリが原因ではありません。待ち時間が長すぎる場合は、近くのサーバーをいくつかブロック解除してください。</x:String>
+  <x:String x:Key="DontShowAgain">今後表示しない</x:String>
 </ResourceDictionary>

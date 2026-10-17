@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Välj språk</x:String>
   <x:String x:Key="ResetFirewallToolTip">Ta bort alla brandväggsregler som appen skapat</x:String>
   <x:String x:Key="MessageBoxInfoTitle">info</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Serverdata har just uppdaterats av Valve. Alla blockerade servrar kommer att avblockeras för att synkronisera ny serverdata. Förinställningsposter för servrar som inte längre finns kommer att tas bort, och den senast valda förinställningen kommer att tillämpas igen om den fortfarande finns.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Serverdata har just uppdaterats av Valve. Alla blockerade servrar kommer att avblockeras för att synkronisera ny serverdata. Dina förinställningar behåller sina val och blockerar nya servrar tills du tillåter dem, och den senast valda förinställningen kommer att tillämpas igen om den fortfarande finns.</x:String>
   <x:String x:Key="NewVersionDialogue">Ny version tillgänglig! Gå till utgåvor?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Välj minst en server att blockera</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Välj minst en server att avblockera.</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Starta om programmet för att ändringarna ska träda i kraft.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Använd förinställning när spelet startar</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Använder spelets senast använda förinställning när det startar och avblockerar allt när det stängs</x:String>
+  <x:String x:Key="StatusPlaying">spelar</x:String>
+  <x:String x:Key="PlayerCountToolTip">Spelar det här spelet just nu i hela världen, enligt Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">Det är sent där du är, så färre spelar i närheten. Med de flesta servrar blockerade kan det ta längre tid att hitta en match. Det är normalt och beror inte på appen. Om kön blir för lång kan du avblockera några servrar nära dig.</x:String>
+  <x:String x:Key="DontShowAgain">Visa inte igen</x:String>
 </ResourceDictionary>

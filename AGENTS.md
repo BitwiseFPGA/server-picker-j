@@ -37,8 +37,30 @@ preset on launch, tracked by `_gameWatcherApplied`. Blocks the user made by hand
 silently.
 - **Trimming is fragile**, as the csproj comment says. Reflection based code can compile and then fail only in
 a published build, so test the publish output rather than a debug run.
-- **Locale keys live in nine files** under `Locales/`. A key added to one must be added to all nine, and
-nothing checks this at compile time.
+- **Locale keys live in nine files** under `Locales/`. A key added to one must be added to all nine.
+Nothing checks this at compile time, but `LocaleKeysTests` fails when the files drift apart.
+- **Flags are stored once per country.** `FlagResolver` reads the place from the server name, such as
+"Frankfurt (Germany)" or "Dallas (Texas)" for US servers, and maps it to `Assets/flags/<country code>.png`.
+A server in a new country needs one PNG and one line in its table, and `FlagResolverTests` checks both
+sides match. Hong Kong, Taiwan and similar places follow the name Valve gives the server.
+- **Presets block servers they have never seen, and never forget one.** A preset stores its blocked servers
+and, in `KnownServerKeys`, every server it has seen. `PresetModel.BlocksServer` treats a server missing from that
+list as blocked, so a server Valve adds later never slips into a preset as allowed. Nothing removes entries when
+Valve takes a server away (the old pruning did, and a server that was gone for one revision came back with the
+wrong state), and the editor keeps entries for servers it does not list. Presets from before 2.1.0 have no list
+and learn the current one once (`InitializeKnownServerKeysByGameModeAsync`), never from an empty list, and an
+empty `KnownServerKeys` counts as not learned, so a failed load cannot make a preset block everything. Share codes
+keep the old format and carry the effective blocked list. Presets refer to servers by Valve's data only (the
+server code such as `fra`, or in the clustered view the cluster keyword or Valve's name), never by flags or
+anything translated. Changing a game's `clusterKeywords` does rename clustered keys, so treat that as a preset
+change.
+- **The player count is one request to Steam** (`SteamPlayerCountService`), made when the window opens,
+comes back from the tray or the user presses Refresh. It never runs on a timer, so it costs nothing while
+the app sits in the tray or a game is running.
+- **Releases are built by `.github/workflows/release.yml`.** Publishing a GitHub release builds both zips
+on a Windows runner (the exe only gets its icon there), checks their contents and the Linux script's line
+endings, writes `SHA256SUMS.txt`, attests the zips and attaches everything. The tag must be `v` followed
+by the csproj `AssemblyVersion`. "Run workflow" on the Actions tab does a dry run without a release.
 - **Avalonia 12 moved some APIs.** For example `IClipboard` is in `Avalonia.Input.Platform` and reading text is
 `TryGetTextAsync()`, not `GetTextAsync()`. Check the Avalonia 12 docs rather than assuming Avalonia 11 signatures.
 

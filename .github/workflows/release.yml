@@ -1,0 +1,126 @@
+name: Release
+
+# Builds the release zips on GitHub's own machines, straight from the code in this repository,
+# so anyone can check where a download came from instead of trusting a zip made on someone's PC.
+#
+# - Publishing a release on GitHub builds both zips and attaches them to it, with SHA256SUMS.txt.
+# - "Run workflow" on the Actions tab is a dry run: it builds the same zips and keeps them as a
+#   download on the run's page, without touching any release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write       # attach the zips to the release
+  id-token: write       # sign the build attestation
+  attestations: write   # store the build attestation
+
+jobs:
+  build:
+    # The Windows exe only gets its icon and version details when it is built on Windows
+    runs-on: windows-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Read the app version
+        id: version
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $match = Select-String -Path ServerPickerX/ServerPickerX.csproj -Pattern '<AssemblyVersion>(\d+)\.(\d+)\.(\d+)'
+          if (-not $match) { throw 'No AssemblyVersion found in ServerPickerX.csproj' }
+          $groups = $match.Matches[0].Groups
+          $version = "$($groups[1].Value).$($groups[2].Value).$($groups[3].Value)"
+
+          # The app compares its own version with the newest release to offer updates, so a
+          # release whose tag does not match the app's version would nag everyone forever
+          if ($env:EVENT_NAME -eq 'release' -and $env:TAG -ne "v$version") {
+            throw "The release tag is $env:TAG but the app's version is $version. Fix AssemblyVersion and FileVersion in ServerPickerX.csproj, or the tag."
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Building version $version"
+
+      - name: Run the tests
+        run: dotnet test ServerPickerX.Tests.slnx
+
+      - name: Build Windows and Linux
+        shell: pwsh
+        run: |
+          dotnet publish ServerPickerX/ServerPickerX.csproj -c Release -r win-x64
+          if ($LASTEXITCODE -ne 0) { throw 'The Windows build failed' }
+
+          dotnet publish ServerPickerX/ServerPickerX.csproj -c Release -r linux-x64
+          if ($LASTEXITCODE -ne 0) { throw 'The Linux build failed' }
+
+      - name: Zip like the earlier releases
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $win = 'ServerPickerX/bin/Release/net10.0/win-x64/publish'
+          $lin = 'ServerPickerX/bin/Release/net10.0/linux-x64/publish'
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+
+          # The Linux launch script stops working with Windows line endings
+          $script = [System.IO.File]::ReadAllBytes((Resolve-Path 'RunDeadlockServerPicker.sh'))
+          if ($script -contains 13) { throw 'RunDeadlockServerPicker.sh has Windows line endings' }
+
+          # Only the app and its libraries, never .pdb files, settings or logs
+          Compress-Archive -Path "$win/DeadlockServerPicker.exe", "$win/*.dll" -DestinationPath "dist/DeadlockServerPicker-v$env:VERSION-win-x64.zip"
+          Compress-Archive -Path "$lin/DeadlockServerPicker", "$lin/*.so", 'RunDeadlockServerPicker.sh' -DestinationPath "dist/DeadlockServerPicker-v$env:VERSION-linux-x64.zip"
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          foreach ($zip in Get-ChildItem dist/*.zip) {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($zip.FullName)
+            try { $names = @($archive.Entries | ForEach-Object { $_.FullName }) } finally { $archive.Dispose() }
+
+            $unexpected = @($names | Where-Object { $_ -match '\.(pdb|json|txt|log)$' -or $_ -match '[\\/]' })
+            if ($unexpected.Count -gt 0) { throw "$($zip.Name) contains files it should not: $($unexpected -join ', ')" }
+            if (-not ($names -contains 'DeadlockServerPicker.exe' -or $names -contains 'DeadlockServerPicker')) { throw "$($zip.Name) has no app in it" }
+
+            Write-Host "$($zip.Name): $($names -join ', ')"
+          }
+
+          # Fingerprints in the format that sha256sum -c understands
+          $lines = Get-ChildItem dist/*.zip | Sort-Object Name | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)"
+          }
+          [System.IO.File]::WriteAllText((Join-Path (Resolve-Path dist) 'SHA256SUMS.txt'), (($lines -join "`n") + "`n"))
+          Get-Content dist/SHA256SUMS.txt
+
+      - name: Sign where the zips came from
+        if: github.event_name == 'release'
+        uses: actions/attest@v4
+        with:
+          subject-path: 'dist/*.zip'
+
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          $files = @((Get-ChildItem dist/*.zip).FullName) + (Resolve-Path dist/SHA256SUMS.txt).Path
+          gh release upload $env:TAG @files --clobber --repo $env:REPOSITORY
+          if ($LASTEXITCODE -ne 0) { throw 'Uploading to the release failed' }
+
+      - name: Keep the dry run zips
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v6
+        with:
+          name: DeadlockServerPicker-v${{ steps.version.outputs.version }}-dry-run
+          path: dist/

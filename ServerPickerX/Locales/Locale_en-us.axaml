@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Select language</x:String>
   <x:String x:Key="ResetFirewallToolTip">Delete every firewall rule this app created</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Server data just got updated by Valve! All blocked servers will be unblocked in order to synchronize new server data. Preset entries for servers that no longer exist will be removed, and the last selected preset will be reapplied if available.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Server data just got updated by Valve! All blocked servers will be unblocked in order to synchronize new server data. Your presets keep their choices and block new servers until you allow them, and the last selected preset will be reapplied if available.</x:String>
   <x:String x:Key="NewVersionDialogue">New version available! Go to releases?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hey! Please select at least one server to block</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Hey! Please select at least one server to unblock</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Restart the application for the changes to take effect.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Apply preset when the game starts</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Applies this game's last used preset when the game launches, and unblocks everything again when it closes</x:String>
+  <x:String x:Key="StatusPlaying">playing</x:String>
+  <x:String x:Key="PlayerCountToolTip">Playing this game right now, worldwide, according to Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">It's late where you are, so fewer people are playing nearby. With most servers blocked, finding a match can take longer. That's normal and not caused by the app. If queues get too long, unblock a few servers close to you.</x:String>
+  <x:String x:Key="DontShowAgain">Don't show again</x:String>
 </ResourceDictionary>

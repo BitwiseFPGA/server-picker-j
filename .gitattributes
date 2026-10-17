@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# The Linux launch script has to keep Unix line endings, even when checked out on Windows
+*.sh text eol=lf

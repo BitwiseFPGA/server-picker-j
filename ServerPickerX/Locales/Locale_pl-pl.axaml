@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Wybierz język</x:String>
   <x:String x:Key="ResetFirewallToolTip">Usuń wszystkie reguły zapory utworzone przez tę aplikację</x:String>
   <x:String x:Key="MessageBoxInfoTitle">informacje</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Valve właśnie zaktualizowało dane serwerów. Wszystkie zablokowane serwery zostaną odblokowane, aby zsynchronizować nowe dane serwera. Wpisy presetów dla serwerów, które już nie istnieją, zostaną usunięte, a ostatnio wybrany preset zostanie zastosowany ponownie, jeśli jest dostępny.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Valve właśnie zaktualizowało dane serwerów. Wszystkie zablokowane serwery zostaną odblokowane, aby zsynchronizować nowe dane serwera. Twoje presety zachowują swoje ustawienia i blokują nowe serwery, dopóki na nie nie zezwolisz, a ostatnio wybrany preset zostanie zastosowany ponownie, jeśli jest dostępny.</x:String>
   <x:String x:Key="NewVersionDialogue">Nowa wersja dostępna! Przejdź do wydań?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Hej! Wybierz co najmniej jeden serwer do zablokowania</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Hej! Wybierz co najmniej jeden serwer do odblokowania</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Uruchom ponownie aplikację, aby zmiany weszły w życie.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Zastosuj zestaw przy starcie gry</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Stosuje ostatnio używany zestaw tej gry przy jej uruchomieniu i odblokowuje wszystko po jej zamknięciu</x:String>
+  <x:String x:Key="StatusPlaying">grają</x:String>
+  <x:String x:Key="PlayerCountToolTip">Liczba osób grających teraz w tę grę na całym świecie, według Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">U ciebie jest późno, więc w pobliżu gra mniej osób. Gdy większość serwerów jest zablokowana, znalezienie meczu może potrwać dłużej. To normalne i nie jest winą aplikacji. Jeśli kolejka jest zbyt długa, odblokuj kilka serwerów w pobliżu.</x:String>
+  <x:String x:Key="DontShowAgain">Nie pokazuj ponownie</x:String>
 </ResourceDictionary>

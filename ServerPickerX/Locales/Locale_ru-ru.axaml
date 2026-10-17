@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Выберите язык</x:String>
   <x:String x:Key="ResetFirewallToolTip">Удалить все правила брандмауэра, созданные приложением</x:String>
   <x:String x:Key="MessageBoxInfoTitle">информация</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Valve обновила данные серверов. Все заблокированные серверы будут разблокированы для синхронизации новых данных. Записи пресета для серверов, которые больше не существуют, будут удалены, а последний выбранный пресет будет применен снова, если он доступен.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Valve обновила данные серверов. Все заблокированные серверы будут разблокированы для синхронизации новых данных. Ваши пресеты сохраняют свой выбор и блокируют новые серверы, пока вы их не разрешите, а последний выбранный пресет будет применен снова, если он доступен.</x:String>
   <x:String x:Key="NewVersionDialogue">Доступна новая версия! Перейти к релизам?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Пожалуйста, выберите хотя бы один сервер для блокировки.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Пожалуйста, выберите хотя бы один сервер для разблокировки.</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Перезапустите приложение, чтобы изменения вступили в силу.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Применять пресет при запуске игры</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Применяет последний использованный пресет этой игры при запуске и снимает все блокировки при выходе</x:String>
+  <x:String x:Key="StatusPlaying">играют</x:String>
+  <x:String x:Key="PlayerCountToolTip">Сейчас играют в эту игру по всему миру, по данным Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">У вас уже поздно, поэтому поблизости играет меньше людей. Когда заблокировано большинство серверов, поиск матча может занять больше времени. Это нормально и не связано с приложением. Если очередь слишком долгая, разблокируйте несколько ближайших серверов.</x:String>
+  <x:String x:Key="DontShowAgain">Больше не показывать</x:String>
 </ResourceDictionary>

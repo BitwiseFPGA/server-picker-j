@@ -22,7 +22,7 @@
   <x:String x:Key="LanguageComboBoxToolTip">Seleccionar idioma</x:String>
   <x:String x:Key="ResetFirewallToolTip">Eliminar todas las reglas de firewall creadas por esta aplicación</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Información</x:String>
-  <x:String x:Key="SyncServersUnblockAllDialogue">Valve acaba de actualizar los datos del servidor. Todos los servidores bloqueados se desbloquearán para sincronizar los nuevos datos. Se eliminarán las entradas del preset correspondientes a servidores que ya no existen y, si está disponible, se volverá a aplicar el último preset seleccionado.</x:String>
+  <x:String x:Key="SyncServersUnblockAllDialogue">Valve acaba de actualizar los datos del servidor. Todos los servidores bloqueados se desbloquearán para sincronizar los nuevos datos. Tus presets conservan su selección y bloquean los servidores nuevos hasta que los permitas y, si está disponible, se volverá a aplicar el último preset seleccionado.</x:String>
   <x:String x:Key="NewVersionDialogue">¡Nueva versión disponible! ¿Ir a lanzamientos?</x:String>
   <x:String x:Key="SelectOneServerToBlockDialogue">Por favor, selecciona al menos un servidor para bloquear.</x:String>
   <x:String x:Key="SelectOneServerToUnblockDialogue">Seleccione al menos un servidor para desbloquear.</x:String>
@@ -94,4 +94,8 @@
   <x:String x:Key="RenderModeDialogue">Reinicia la aplicación para que los cambios surtan efecto.</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchLabel">Aplicar preajuste al iniciar el juego</x:String>
   <x:String x:Key="AutoApplyOnGameLaunchToolTip">Aplica el último preajuste usado en este juego al iniciarlo y desbloquea todo cuando se cierra</x:String>
+  <x:String x:Key="StatusPlaying">jugando</x:String>
+  <x:String x:Key="PlayerCountToolTip">Jugando a este juego ahora mismo en todo el mundo, según Steam</x:String>
+  <x:String x:Key="LateNightNoticeDialogue">Es tarde donde estás, así que hay menos gente jugando cerca. Con la mayoría de los servidores bloqueados, encontrar partida puede tardar más. Es normal y no lo causa la aplicación. Si las colas se alargan demasiado, desbloquea algunos servidores cercanos.</x:String>
+  <x:String x:Key="DontShowAgain">No volver a mostrar</x:String>
 </ResourceDictionary>

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServerPickerX.Settings
@@ -61,6 +62,12 @@ namespace ServerPickerX.Settings
         // again when it exits, opt in and off by default
         public virtual bool auto_apply_on_game_launch { get; set; } = false;
 
+        // The late night queue notice shows at most once a day, and never again once the
+        // user picks "Don't show again"
+        public virtual bool late_night_notice_hidden { get; set; } = false;
+
+        public virtual string late_night_notice_last_shown { get; set; } = string.Empty;
+
         [JsonIgnore]
         public readonly string jsonFilePath = ResolveSettingsPath();
 
@@ -71,6 +78,10 @@ namespace ServerPickerX.Settings
             WriteIndented = true,
             IncludeFields = true,
         };
+
+        // A ping sweep and a firewall pass can both save at the same moment, and two
+        // overlapping writes to the same file fail, so saves take turns
+        private static readonly SemaphoreSlim SaveLock = new(1, 1);
 
         [JsonIgnore]
         private IMessageBoxService _messageBoxService { get; set; }
@@ -155,6 +166,8 @@ namespace ServerPickerX.Settings
                 auto_refresh_minutes = localSettings.auto_refresh_minutes;
                 minimize_to_tray = localSettings.minimize_to_tray;
                 auto_apply_on_game_launch = localSettings.auto_apply_on_game_launch;
+                late_night_notice_hidden = localSettings.late_night_notice_hidden;
+                late_night_notice_last_shown = localSettings.late_night_notice_last_shown ?? string.Empty;
                 last_server_readings = localSettings.last_server_readings != null
                     ? new Dictionary<string, Dictionary<string, string>>(localSettings.last_server_readings, StringComparer.OrdinalIgnoreCase)
                     : new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
@@ -174,6 +187,8 @@ namespace ServerPickerX.Settings
         // unless JsonSerializerIsReflectionEnabledByDefault is set to true in .csproj
         public async Task<bool> SaveSettingsAsync()
         {
+            await SaveLock.WaitAsync();
+
             try
             {
                 // an extra curly brace is being added when serializing,
@@ -194,6 +209,10 @@ namespace ServerPickerX.Settings
                 await _messageBoxService.ShowMessageBoxAsync("Error", "An error has occured while saving json settings");
 
                 return false;
+            }
+            finally
+            {
+                SaveLock.Release();
             }
         }
 
@@ -356,6 +375,18 @@ namespace ServerPickerX.Settings
             await SaveSettingsAsync();
         }
 
+        public async Task SetLateNightNoticeShownAsync(string dateKey, bool hideForGood)
+        {
+            late_night_notice_last_shown = dateKey;
+
+            if (hideForGood)
+            {
+                late_night_notice_hidden = true;
+            }
+
+            await SaveSettingsAsync();
+        }
+
         public List<string> GetBlockedServerKeysByGameMode()
         {
             if (string.IsNullOrWhiteSpace(game_mode))
@@ -431,10 +462,11 @@ namespace ServerPickerX.Settings
 
             PresetModel? existingPreset = GetPresetByGameMode(preset.GameMode, preset.Name);
 
-            List<string> blockedServerKeys = preset.BlockedServerKeys
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            List<string> blockedServerKeys = NormalizeServerKeys(preset.BlockedServerKeys);
+
+            List<string>? knownServerKeys = preset.KnownServerKeys == null
+                ? null
+                : NormalizeServerKeys(preset.KnownServerKeys);
 
             if (existingPreset == null)
             {
@@ -444,12 +476,16 @@ namespace ServerPickerX.Settings
                     GameMode = preset.GameMode,
                     IsClustered = preset.IsClustered,
                     BlockedServerKeys = blockedServerKeys,
+                    KnownServerKeys = knownServerKeys,
                 });
             }
             else
             {
                 existingPreset.IsClustered = preset.IsClustered;
                 existingPreset.BlockedServerKeys = blockedServerKeys;
+
+                // Null only when no server list was loaded, the next load fills it in again
+                existingPreset.KnownServerKeys = knownServerKeys;
             }
 
             await SaveSettingsAsync();
@@ -465,10 +501,13 @@ namespace ServerPickerX.Settings
             await SaveSettingsAsync();
         }
 
-        public async Task<bool> PrunePresetEntriesByGameModeAsync(
+        // Presets saved by versions before 2.1.0 do not know which servers existed when they were
+        // made. They learn the current list once, so any server Valve adds from then on is new to
+        // them and stays blocked. Other games' presets wait until that game's servers are loaded
+        public async Task<bool> InitializeKnownServerKeysByGameModeAsync(
             string gameMode,
-            HashSet<string> clusteredServerKeys,
-            HashSet<string> unclusteredServerKeys
+            IReadOnlyCollection<string> clusteredServerKeys,
+            IReadOnlyCollection<string> unclusteredServerKeys
             )
         {
             if (string.IsNullOrWhiteSpace(gameMode))
@@ -481,30 +520,20 @@ namespace ServerPickerX.Settings
             bool presetsChanged = false;
 
             foreach (PresetModel preset in server_presets.Where(preset =>
+                         (preset.KnownServerKeys?.Count ?? 0) == 0 &&
                          (preset.GameMode ?? string.Empty).Equals(gameMode, StringComparison.OrdinalIgnoreCase)))
             {
-                HashSet<string> validServerKeys = preset.IsClustered
+                List<string> currentServerKeys = NormalizeServerKeys(preset.IsClustered
                     ? clusteredServerKeys
-                    : unclusteredServerKeys;
+                    : unclusteredServerKeys);
 
-                List<string> prunedServerKeys = (preset.BlockedServerKeys ?? [])
-                    .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey) && validServerKeys.Contains(serverKey))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                List<string> currentServerKeys = (preset.BlockedServerKeys ?? [])
-                    .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                if (currentServerKeys.SequenceEqual(prunedServerKeys, StringComparer.OrdinalIgnoreCase))
+                // An empty list means the servers did not load, so there is nothing to learn yet
+                if (currentServerKeys.Count == 0)
                 {
                     continue;
                 }
 
-                preset.BlockedServerKeys = prunedServerKeys;
+                preset.KnownServerKeys = currentServerKeys;
                 presetsChanged = true;
             }
 
@@ -518,6 +547,13 @@ namespace ServerPickerX.Settings
             return true;
         }
 
-
+        private static List<string> NormalizeServerKeys(IEnumerable<string>? serverKeys)
+        {
+            return (serverKeys ?? [])
+                .Where(serverKey => !string.IsNullOrWhiteSpace(serverKey))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(serverKey => serverKey, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
     }
 }

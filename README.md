@@ -52,6 +52,16 @@ normally and every operation fails.
 The app isn't code signed, a certificate costs real money. You can build it
 yourself from source if you'd rather not trust the binary.
 
+**How can I check a download is the real one?**
+Starting with v2.1.0, every release is built by GitHub straight from the code in this
+repository, not on my PC. Each release has a `SHA256SUMS.txt` with the fingerprint of every
+zip, and GitHub signs where each zip came from. With the [GitHub CLI](https://cli.github.com)
+installed you can check one yourself:
+
+```
+gh attestation verify DeadlockServerPicker-v2.1.0-win-x64.zip -R cankhut/deadlock-server-picker
+```
+
 **I'm receiving frequent timeouts when a match is being confirmed**
 You may have blocked too many servers, for optimal searching and relaying block only the necessary server relays.
 
@@ -128,7 +138,10 @@ machines before release.
 - Blocked servers keep their last ping, so they still sort correctly
 - Right click a card to block every server at least as slow as it
 - Presets can be shared as a short code and imported from your clipboard
+- Servers Valve adds later start out blocked in your presets, until you allow them
 - Optional auto refresh and optional close to system tray under settings tab
+- With close to tray on, right click the tray icon to apply a preset or unblock everything without opening the window
+- Shows how many people are playing the selected game right now, next to the blocked count
 - Optionally applies your last used preset when the game launches, and unblocks everything again when it closes
 
 Not affiliated with, authorised by, or endorsed by Valve or its subsidiaries.
