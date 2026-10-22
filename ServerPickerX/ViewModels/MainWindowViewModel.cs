@@ -334,7 +334,13 @@ namespace ServerPickerX.ViewModels
         [RelayCommand]
         public void PingServers(ICollection<ServerModel> serverModels) => _ = PingServersAsync(serverModels);
 
-        public async Task PingServersAsync(ICollection<ServerModel> serverModels)
+        /// <param name="saveReadings">
+        /// False right after a block or unblock, which has just written the
+        /// settings file itself. The readings are still kept, they simply
+        /// go to disk with the next write instead of costing one of their
+        /// own, so one click is one write rather than two.
+        /// </param>
+        public async Task PingServersAsync(ICollection<ServerModel> serverModels, bool saveReadings = true)
         {
             if (serverModels.Count == 0)
             {
@@ -367,7 +373,14 @@ namespace ServerPickerX.ViewModels
                 await _loggerService.LogWarningAsync("A ping sweep did not finish cleanly: " + ex.Message);
             }
 
-            await PersistServerReadingsAsync();
+            if (saveReadings)
+            {
+                await PersistServerReadingsAsync();
+            }
+            else
+            {
+                _jsonSetting.SetServerReadingsByGameMode(CollectServerReadings());
+            }
         }
 
         public void PingSelectedServer()
@@ -557,8 +570,10 @@ namespace ServerPickerX.ViewModels
                     await ClearLastSelectedPresetByGameModeAsync();
                 }
 
-                // Ping servers (parallel/fire-forget operation)
-                PingServers(changedServers);
+                // Ping servers (parallel/fire-forget operation). The settings
+                // file was written a few lines up, so the readings this sweep
+                // produces are kept in memory and go out with the next write
+                _ = PingServersAsync(changedServers, false);
 
                 if (failedServers.Count == 0)
                 {
@@ -761,7 +776,7 @@ namespace ServerPickerX.ViewModels
             }
         }
 
-        private async Task PersistServerReadingsAsync()
+        private Dictionary<string, string> CollectServerReadings()
         {
             Dictionary<string, string> readings = new(StringComparer.OrdinalIgnoreCase);
 
@@ -775,7 +790,12 @@ namespace ServerPickerX.ViewModels
                 readings[GetServerKey(serverModel)] = $"{serverModel.Ping}|{serverModel.PacketLoss}";
             }
 
-            await _jsonSetting.SetServerReadingsByGameModeAsync(readings);
+            return readings;
+        }
+
+        private async Task PersistServerReadingsAsync()
+        {
+            await _jsonSetting.SetServerReadingsByGameModeAsync(CollectServerReadings());
         }
 
         private async Task PersistBlockedServerKeysAsync()

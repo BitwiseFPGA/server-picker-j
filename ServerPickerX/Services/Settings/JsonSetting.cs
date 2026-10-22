@@ -368,7 +368,15 @@ namespace ServerPickerX.Settings
                 : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public async Task SetServerReadingsByGameModeAsync(Dictionary<string, string> readings)
+        /// Keeps the readings in memory without writing anything.
+        ///
+        /// A ping and a packet loss figure are a convenience, not something
+        /// worth a write of their own: they are measured again a second
+        /// after every launch, and losing them costs nothing but a moment
+        /// of empty cards. Right after a block or an unblock the settings
+        /// file has just been written, so these ride along with whatever is
+        /// saved next instead of making one click cost two writes.
+        public void SetServerReadingsByGameMode(Dictionary<string, string> readings)
         {
             if (string.IsNullOrWhiteSpace(game_mode))
             {
@@ -385,6 +393,16 @@ namespace ServerPickerX.Settings
             {
                 last_server_readings[game_mode] = new Dictionary<string, string>(readings, StringComparer.OrdinalIgnoreCase);
             }
+        }
+
+        public async Task SetServerReadingsByGameModeAsync(Dictionary<string, string> readings)
+        {
+            if (string.IsNullOrWhiteSpace(game_mode))
+            {
+                return;
+            }
+
+            SetServerReadingsByGameMode(readings);
 
             await SaveSettingsAsync();
         }
