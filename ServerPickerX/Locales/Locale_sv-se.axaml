@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Gruppera eller avgruppera servrar</x:String>
   <x:String x:Key="RefreshToolTip">Uppdatera ping för alla servrar</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Detta åtgärder kommer att avblockera alla servrar först för att undvika brandvägskonflikter.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Att gruppera servrarna annorlunda tar bort de servrar du har blockerat, eftersom de två vyerna namnger dem olika. Dina förinställningar påverkas inte.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Välj språk</x:String>
   <x:String x:Key="ResetFirewallToolTip">Ta bort alla brandväggsregler som appen skapat</x:String>
   <x:String x:Key="MessageBoxInfoTitle">info</x:String>

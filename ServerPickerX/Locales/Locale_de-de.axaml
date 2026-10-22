@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Server gruppieren oder entgruppieren</x:String>
   <x:String x:Key="RefreshToolTip">Ping aller Server aktualisieren</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Diese Aktion wird zuerst alle Server freigeben, um Firewall-Konflikte zu vermeiden.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Eine andere Gruppierung der Server hebt Ihre blockierten Server auf, da beide Ansichten sie unterschiedlich benennen. Ihre Voreinstellungen bleiben unberührt.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Sprache auswählen</x:String>
   <x:String x:Key="ResetFirewallToolTip">Alle von dieser App erstellten Firewallregeln löschen</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>

@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Group or ungroup servers</x:String>
   <x:String x:Key="RefreshToolTip">Refresh all server ping</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">This action will unblock all servers first to prevent firewall conflicts.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Grouping servers differently clears the servers you have blocked, because the two views name them differently. Your presets are not affected.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Select language</x:String>
   <x:String x:Key="ResetFirewallToolTip">Delete every firewall rule this app created</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Info</x:String>

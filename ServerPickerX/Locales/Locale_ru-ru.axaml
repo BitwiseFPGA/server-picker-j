@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Группировать или разгруппировать серверы</x:String>
   <x:String x:Key="RefreshToolTip">Обновить пинг всех серверов</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Это действие сначала разблокирует все сервера для предотвращения конфликтов брандмауэра.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Изменение группировки серверов снимет блокировку с заблокированных серверов, так как в двух представлениях они называются по-разному. Ваши пресеты не затрагиваются.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Выберите язык</x:String>
   <x:String x:Key="ResetFirewallToolTip">Удалить все правила брандмауэра, созданные приложением</x:String>
   <x:String x:Key="MessageBoxInfoTitle">информация</x:String>

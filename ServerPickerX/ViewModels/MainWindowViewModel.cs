@@ -437,15 +437,48 @@ namespace ServerPickerX.ViewModels
             return await PerformOperationAsync(true, serverModels);
         }
 
+        /// Blocks what the wall is showing, which is everything when the
+        /// search box is empty and only the matches when it is not.
+        ///
+        /// Searching and then pressing this is the only way to block a group
+        /// of servers at once, so it deliberately follows the search rather
+        /// than ignoring it. `UnblockVisibleAsync` is its opposite number and
+        /// follows the search the same way, so the pair always act on the
+        /// same servers.
         [RelayCommand]
         public async Task<bool> BlockAllAsync()
         {
-            if (ServerModels.Count == 0)
+            ObservableCollection<ServerModel> shown = FilteredServerModels;
+
+            // Checked on what will actually be blocked. It used to look at
+            // the whole list, so a search matching nothing still sent an
+            // empty pass to the firewall
+            if (shown.Count == 0)
             {
                 return false;
             }
 
-            return await PerformOperationAsync(true, FilteredServerModels);
+            return await PerformOperationAsync(true, shown);
+        }
+
+        /// Unblocks what the wall is showing. The button's other half.
+        ///
+        /// Separate from `UnblockAllAsync` on purpose: that one is what the
+        /// app itself calls to clear every rule before switching game, after
+        /// Valve changes the server list, and on the way out, and none of
+        /// those may be narrowed by whatever happens to be typed in the
+        /// search box.
+        [RelayCommand]
+        public async Task<bool> UnblockVisibleAsync()
+        {
+            ObservableCollection<ServerModel> shown = FilteredServerModels;
+
+            if (shown.Count == 0)
+            {
+                return false;
+            }
+
+            return await PerformOperationAsync(false, shown);
         }
 
         [RelayCommand]

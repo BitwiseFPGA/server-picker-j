@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Sunucuları grupla veya gruplamayı kaldır</x:String>
   <x:String x:Key="RefreshToolTip">Tüm sunucu gecikmelerini yenile</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Bu işlem, güvenlik duvarı çakışmalarını önlemek amacıyla önce tüm sunucuların engellemelerini kaldıracak.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Sunucuları farklı gruplamak engellediğiniz sunucuları temizler, çünkü iki görünüm onları farklı adlandırır. Hazır ayarlarınız etkilenmez.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Dil seç</x:String>
   <x:String x:Key="ResetFirewallToolTip">Bu uygulamanın oluşturduğu tüm güvenlik duvarı kurallarını sil</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Bilgi</x:String>

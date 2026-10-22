@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">サーバーをグループ化またはグループ解除</x:String>
   <x:String x:Key="RefreshToolTip">すべてのサーバーの ping を更新</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">この操作は、ファイアウォールの競合を防ぐためにまずすべてのサーバーを解除します。</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">サーバーのグループ化を切り替えると、ブロック中のサーバーが解除されます。2つの表示ではサーバー名が異なるためです。プリセットには影響しません。</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">言語を選択</x:String>
   <x:String x:Key="ResetFirewallToolTip">このアプリが作成したファイアウォールルールをすべて削除</x:String>
   <x:String x:Key="MessageBoxInfoTitle">情報</x:String>

@@ -72,6 +72,11 @@ namespace ServerPickerX.Settings
         // "Ok, don't ask again". Switching still unblocks, the app just stops asking
         public virtual bool game_switch_notice_hidden { get; set; } = false;
 
+        // The same warning for grouping servers into clusters and back, which
+        // clears the blocks for the same reason: the two views name servers
+        // differently, so a rule made in one cannot be carried into the other
+        public virtual bool cluster_switch_notice_hidden { get; set; } = false;
+
         [JsonIgnore]
         public readonly string jsonFilePath = ResolveSettingsPath();
 
@@ -173,6 +178,7 @@ namespace ServerPickerX.Settings
                 late_night_notice_hidden = localSettings.late_night_notice_hidden;
                 late_night_notice_last_shown = localSettings.late_night_notice_last_shown ?? string.Empty;
                 game_switch_notice_hidden = localSettings.game_switch_notice_hidden;
+                cluster_switch_notice_hidden = localSettings.cluster_switch_notice_hidden;
                 last_server_readings = localSettings.last_server_readings != null
                     ? new Dictionary<string, Dictionary<string, string>>(localSettings.last_server_readings, StringComparer.OrdinalIgnoreCase)
                     : new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
@@ -443,6 +449,13 @@ namespace ServerPickerX.Settings
         public async Task SetGameSwitchNoticeHiddenAsync(bool hidden)
         {
             game_switch_notice_hidden = hidden;
+
+            await SaveSettingsAsync();
+        }
+
+        public async Task SetClusterSwitchNoticeHiddenAsync(bool hidden)
+        {
+            cluster_switch_notice_hidden = hidden;
 
             await SaveSettingsAsync();
         }

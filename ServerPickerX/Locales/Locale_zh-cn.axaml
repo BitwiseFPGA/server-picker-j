@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">分组或取消分组服务器</x:String>
   <x:String x:Key="RefreshToolTip">刷新所有服务器 ping</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">此操作将首先解除所有服务器的阻止，以防止防火墙冲突。</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">更改服务器分组方式会清除您已屏蔽的服务器，因为两种视图对它们的命名不同。您的预设不受影响。</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">选择语言</x:String>
   <x:String x:Key="ResetFirewallToolTip">删除本应用创建的所有防火墙规则</x:String>
   <x:String x:Key="MessageBoxInfoTitle">信息</x:String>

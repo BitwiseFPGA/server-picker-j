@@ -305,9 +305,55 @@ namespace ServerPickerX.Views
                 return;
             }
 
+            if (!await ConfirmClusterSwitchAsync(vm))
+            {
+                return;
+            }
+
             await vm.ClusterUnclusterServersAsync();
             SyncPresetSelection(vm.SelectedPreset);
             RefreshClusterButtonContent();
+        }
+
+        /// Switching between the grouped and ungrouped views clears every
+        /// block, because the two views name servers differently and a rule
+        /// made in one cannot be carried into the other.
+        ///
+        /// Switching games does exactly the same damage and has always asked
+        /// first. This one did not, so a view change quietly threw away work.
+        /// Nothing is blocked means nothing to lose, and then it does not ask.
+        private async Task<bool> ConfirmClusterSwitchAsync(MainWindowViewModel vm)
+        {
+            if (_jsonSetting.cluster_switch_notice_hidden || vm.BlockedServerCount == 0)
+            {
+                return true;
+            }
+
+            string okDontAskAgain = _localizationService.GetLocaleValue("OkDontAskAgain");
+
+            string choice = await _messageBoxService.ShowMessageBoxChoiceAsync(
+                _localizationService.GetLocaleValue("MessageBoxInfoTitle"),
+                _localizationService.GetLocaleValue("SwapClusterUnblockAllConflict"),
+                ["Ok", okDontAskAgain, "Cancel"],
+                MsBox.Avalonia.Enums.Icon.Setting
+                );
+
+            // Checked first, so a translation that happens to read "Ok" cannot
+            // turn the plain Ok button into the one that stops asking
+            if (choice == "Ok")
+            {
+                return true;
+            }
+
+            if (choice == okDontAskAgain)
+            {
+                await _jsonSetting.SetClusterSwitchNoticeHiddenAsync(true);
+
+                return true;
+            }
+
+            // Closing the dialog without choosing counts as not switching
+            return false;
         }
 
         private async void PresetsBtn_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

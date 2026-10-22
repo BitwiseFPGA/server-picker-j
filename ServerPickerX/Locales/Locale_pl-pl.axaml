@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Grupowanie lub rozgrupowywanie serwerów</x:String>
   <x:String x:Key="RefreshToolTip">Odśwież ping wszystkich serwerów</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Ta czynność odblokuje najpierw wszystkie serwery, aby zapobiec konfliktom z zaporą sieciową.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Zmiana grupowania serwerów usuwa zablokowane serwery, ponieważ oba widoki nazywają je inaczej. Twoje ustawienia wstępne pozostają bez zmian.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Wybierz język</x:String>
   <x:String x:Key="ResetFirewallToolTip">Usuń wszystkie reguły zapory utworzone przez tę aplikację</x:String>
   <x:String x:Key="MessageBoxInfoTitle">informacje</x:String>

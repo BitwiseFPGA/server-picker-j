@@ -19,6 +19,7 @@
   <x:String x:Key="ClusterUnclusterToolTip">Agrupar o desagrupar servidores</x:String>
   <x:String x:Key="RefreshToolTip">Actualizar el ping de todos los servidores</x:String>
   <x:String x:Key="SwapGameModeUnblockAllConflict">Esta acción desbloqueará primero todos los servidores para evitar conflictos de firewall.</x:String>
+  <x:String x:Key="SwapClusterUnblockAllConflict">Agrupar los servidores de otra forma borra los servidores que has bloqueado, porque las dos vistas los nombran de manera distinta. Tus preajustes no se ven afectados.</x:String>
   <x:String x:Key="LanguageComboBoxToolTip">Seleccionar idioma</x:String>
   <x:String x:Key="ResetFirewallToolTip">Eliminar todas las reglas de firewall creadas por esta aplicación</x:String>
   <x:String x:Key="MessageBoxInfoTitle">Información</x:String>

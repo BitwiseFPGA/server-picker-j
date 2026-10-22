@@ -313,7 +313,7 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             IsEnabled="{Binding IsOperationAllowed}"
-                            Command="{Binding UnblockAllAsync}"
+                            Command="{Binding UnblockVisibleAsync}"
                             Content="{DynamicResource UnblockAll}"
                             ToolTip.Tip="{DynamicResource UnblockAllToolTip}"
                             ToolTip.ShowDelay="300"
