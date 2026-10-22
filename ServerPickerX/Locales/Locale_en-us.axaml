@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Whoa! There's already a pending operation. Please wait...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">This removes every firewall rule created by this app and unblocks all servers. Other firewall rules on your computer are not touched. Continue?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Removed {0} firewall rule(s) created by this app.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Error</x:String>
+  <x:String x:Key="BlockFailedDialogue">These servers could not be blocked: {0}. They stay unblocked. The log file has the details.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">These servers could not be unblocked: {0}. They stay blocked. The log file has the details.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Something went wrong while changing the firewall. The log file has the details.</x:String>
   <x:String x:Key="Presets">Presets</x:String>
   <x:String x:Key="PresetsToolTip">Manage presets</x:String>
   <x:String x:Key="AddPreset">Add</x:String>

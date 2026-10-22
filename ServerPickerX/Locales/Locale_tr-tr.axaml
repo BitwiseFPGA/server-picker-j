@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Zaten bekleyen bir işlem var. Lütfen bekleyin...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Bu işlem yalnızca bu uygulamanın oluşturduğu güvenlik duvarı kurallarını siler ve tüm sunucuların engelini kaldırır. Bilgisayarınızdaki diğer kurallara dokunulmaz. Devam edilsin mi?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Bu uygulamanın oluşturduğu {0} güvenlik duvarı kuralı silindi.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Hata</x:String>
+  <x:String x:Key="BlockFailedDialogue">Bu sunucular engellenemedi: {0}. Engellenmemiş durumda kalıyorlar. Ayrıntılar günlük dosyasında.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">Bu sunucuların engeli kaldırılamadı: {0}. Engelli durumda kalıyorlar. Ayrıntılar günlük dosyasında.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Güvenlik duvarı değiştirilirken bir sorun oluştu. Ayrıntılar günlük dosyasında.</x:String>
   <x:String x:Key="Presets">Ön Ayarlar</x:String>
   <x:String x:Key="PresetsToolTip">Ön ayarları yönet</x:String>
   <x:String x:Key="AddPreset">Ekle</x:String>

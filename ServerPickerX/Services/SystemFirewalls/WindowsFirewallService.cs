@@ -30,15 +30,27 @@ namespace ServerPickerX.Services.SystemFirewalls
         private const int _firewallRuleProtocolAny = 256;
         private const int _firewallRuleProfilesAll = int.MaxValue;
 
+        // Every server is tried, and one that fails does not stop the rest. The
+        // ones that failed are reported together at the end, so the app can show
+        // each server as it really is. Before, the first failure ended the pass:
+        // the rules already added stayed in the firewall while the app showed
+        // every server as unblocked
         public async Task BlockServersAsync(ObservableCollection<ServerModel> serverModels)
         {
-            try
-            {
-                INetFwPolicy2 firewallPolicy = GetFirewallPolicyApi();
-                INetFwRules firewallRules = firewallPolicy.Rules;
+            INetFwRules firewallRules = await GetFirewallRulesAsync();
 
-                foreach (var serverModel in serverModels)
+            List<ServerModel> failedServers = [];
+
+            foreach (var serverModel in serverModels)
+            {
+                try
                 {
+                    // A rule with no addresses is not a rule the firewall will take
+                    if (serverModel.RelayModels.Count == 0)
+                    {
+                        throw new InvalidOperationException("the server has no addresses to block");
+                    }
+
                     string ruleName = GetFirewallRuleName(serverModel);
                     string ipAddresses = string.Join(",", serverModel.RelayModels.Select(s => s.IPv4));
 
@@ -56,30 +68,57 @@ namespace ServerPickerX.Services.SystemFirewalls
 
                     firewallRules.Add(firewallRule);
                 }
+                catch (Exception ex)
+                {
+                    failedServers.Add(serverModel);
+
+                    await _loggerService.LogErrorAsync($"Could not block {serverModel.Description}", ex.Message);
+                }
             }
-            catch (Exception ex)
+
+            if (failedServers.Count > 0)
             {
-                await _loggerService.LogErrorAsync(ex.Message);
-                throw;
+                throw new FirewallOperationException(failedServers);
             }
         }
 
         public async Task UnblockServersAsync(ObservableCollection<ServerModel> serverModels)
         {
+            INetFwRules firewallRules = await GetFirewallRulesAsync();
+
+            List<ServerModel> failedServers = [];
+
+            foreach (var serverModel in serverModels)
+            {
+                try
+                {
+                    RemoveFirewallRuleByName(firewallRules, GetFirewallRuleName(serverModel));
+                }
+                catch (Exception ex)
+                {
+                    failedServers.Add(serverModel);
+
+                    await _loggerService.LogErrorAsync($"Could not unblock {serverModel.Description}", ex.Message);
+                }
+            }
+
+            if (failedServers.Count > 0)
+            {
+                throw new FirewallOperationException(failedServers);
+            }
+        }
+
+        // When the firewall itself cannot be reached nothing has been changed yet,
+        // so this is the one failure that is still all or nothing
+        private async Task<INetFwRules> GetFirewallRulesAsync()
+        {
             try
             {
-                INetFwPolicy2 firewallPolicy = GetFirewallPolicyApi();
-                INetFwRules firewallRules = firewallPolicy.Rules;
-
-                foreach (var serverModel in serverModels)
-                {
-                    string ruleName = GetFirewallRuleName(serverModel);
-                    RemoveFirewallRuleByName(firewallRules, ruleName);
-                }
+                return GetFirewallPolicyApi().Rules;
             }
             catch (Exception ex)
             {
-                await _loggerService.LogErrorAsync(ex.Message);
+                await _loggerService.LogErrorAsync("Could not reach Windows Firewall", ex.Message);
                 throw;
             }
         }

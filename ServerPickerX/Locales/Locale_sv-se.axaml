@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Oj! Det finns redan en väntande åtgärd. Vänta...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Detta tar bort endast de brandväggsregler som appen skapat och avblockerar alla servrar. Övriga regler på datorn rörs inte. Fortsätta?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Tog bort {0} brandväggsregel/regler som appen skapat.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Fel</x:String>
+  <x:String x:Key="BlockFailedDialogue">De här servrarna kunde inte blockeras: {0}. De förblir avblockerade. Detaljerna finns i loggfilen.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">De här servrarna kunde inte avblockeras: {0}. De förblir blockerade. Detaljerna finns i loggfilen.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Något gick fel när brandväggen skulle ändras. Detaljerna finns i loggfilen.</x:String>
   <x:String x:Key="Presets">Förinställningar</x:String>
   <x:String x:Key="PresetsToolTip">Hantera förinställningar</x:String>
   <x:String x:Key="AddPreset">Lägg till</x:String>

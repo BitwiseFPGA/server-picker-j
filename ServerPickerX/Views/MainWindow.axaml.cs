@@ -62,6 +62,13 @@ namespace ServerPickerX.Views
         private bool _gameWatcherApplied;
         private bool _gameWatcherBusy;
 
+        // What was blocked before auto apply put the preset on, and what was
+        // blocked once it had. The game closing puts back the first, but only
+        // while the blocks still match the second: anything changed by hand
+        // during the game is the user's and is left alone
+        private MainWindowViewModel.BlockedState? _blocksBeforeAutoApply;
+        private MainWindowViewModel.BlockedState? _blocksAfterAutoApply;
+
         // While the game runs the watcher waits on its process instead of polling. The
         // generation lets a wait that ends late tell the watcher was restarted meanwhile
         private CancellationTokenSource? _gameExitWait;
@@ -420,6 +427,8 @@ namespace ServerPickerX.Views
             StopGameWatcher();
 
             _gameWatcherApplied = false;
+            _blocksBeforeAutoApply = null;
+            _blocksAfterAutoApply = null;
             _gameWatcherBusy = false;
             _gameExitWaitSupported = true;
 
@@ -523,15 +532,37 @@ namespace ServerPickerX.Views
                         }
                         else if (_gameWatcherApplied)
                         {
-                            // Only ever undo what this watcher did itself. Blocks the user made
-                            // by hand are theirs to remove, the app does not clear them silently
                             _gameWatcherApplied = false;
 
-                            await vm.UnblockAllAsync(shouldClearLastSelectedPreset: false);
+                            MainWindowViewModel.BlockedState? before = _blocksBeforeAutoApply;
+                            MainWindowViewModel.BlockedState? after = _blocksAfterAutoApply;
 
-                            SyncPresetSelection(vm.SelectedPreset);
+                            _blocksBeforeAutoApply = null;
+                            _blocksAfterAutoApply = null;
 
-                            await _loggerService.LogInfoAsync($"Auto apply unblocked all servers after {_gameWatcherGameMode} closed");
+                            // Blocks changed by hand while the game ran are the user's now,
+                            // and are left exactly as they are
+                            if (before == null || after == null || !vm.CaptureBlockedState().SameAs(after))
+                            {
+                                await _loggerService.LogInfoAsync(
+                                    $"Auto apply left the blocks alone after {_gameWatcherGameMode} closed, they were changed during the game"
+                                    );
+                            }
+                            else
+                            {
+                                // Puts back what was blocked before the game started,
+                                // including blocks the user made by hand. This used to
+                                // unblock everything, and took those with it
+                                bool restored = await vm.RestoreBlockedStateAsync(before);
+
+                                SyncPresetSelection(vm.SelectedPreset);
+                                RefreshClusterButtonContent();
+
+                                await _loggerService.LogInfoAsync(restored
+                                    ? $"Auto apply put back the blocks from before {_gameWatcherGameMode} started"
+                                    : $"Auto apply could not fully put back the blocks from before {_gameWatcherGameMode} started"
+                                    );
+                            }
                         }
 
                         _gameWasRunning = isRunning;
@@ -626,16 +657,37 @@ namespace ServerPickerX.Views
                 return;
             }
 
+            MainWindowViewModel.BlockedState before = vm.CaptureBlockedState();
+
             bool presetApplied = await vm.ApplyPresetAsync(preset);
+
+            MainWindowViewModel.BlockedState after = vm.CaptureBlockedState();
+
+            // Armed whenever anything changed, not only on success. A preset that
+            // only partly went on has still taken the user's own blocks off on the
+            // way, and those should come back when the game closes
+            if (!after.SameAs(before))
+            {
+                _blocksBeforeAutoApply = before;
+                _blocksAfterAutoApply = after;
+                _gameWatcherApplied = true;
+            }
 
             if (!presetApplied)
             {
                 await _loggerService.LogWarningAsync($"Auto apply could not apply preset '{presetName}' on game launch");
 
+                // A preset that only partly went on is left deselected, and auto
+                // apply picks the next game's preset from that selection. It is
+                // put back so the picker shows the truth and the next launch
+                // still has something to apply
+                await vm.RestoreSelectedPresetAsync(presetName);
+
+                SyncPresetSelection(vm.SelectedPreset);
+                RefreshClusterButtonContent();
+
                 return;
             }
-
-            _gameWatcherApplied = true;
 
             SyncPresetSelection(vm.SelectedPreset);
             RefreshClusterButtonContent();
@@ -986,9 +1038,14 @@ namespace ServerPickerX.Views
                 return;
             }
 
-            if (choice == unblockAll)
+            // The unblock not going through means the reason has just been shown.
+            // Quitting anyway would leave rules in the firewall with nothing
+            // running to take them off, the opposite of what was asked for
+            if (choice == unblockAll && !await viewModel.UnblockAllAsync())
             {
-                await viewModel.UnblockAllAsync();
+                _isExiting = false;
+
+                return;
             }
 
             _blockedExitPromptAnswered = true;

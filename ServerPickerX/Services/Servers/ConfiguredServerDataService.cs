@@ -5,7 +5,9 @@ using ServerPickerX.Services.MessageBoxes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
@@ -67,14 +69,17 @@ namespace ServerPickerX.Services.Servers
 
             foreach (KeyValuePair<string, JsonNode?> server in (JsonObject)mainJson["pops"]!)
             {
-                if (server.Value?["relays"] == null)
+                // One entry Valve gets wrong costs that one server, not the whole
+                // list. Before, a missing description or an oddly shaped relay list
+                // threw out of this loop and the app showed no servers at all
+                if (server.Value is not JsonObject pop || pop["relays"] is not JsonArray relays)
                 {
                     continue;
                 }
 
-                string serverDescription = server.Value["desc"]!.ToString();
+                string? serverDescription = pop["desc"]?.ToString();
 
-                if (!IsServerAccepted(serverDescription))
+                if (string.IsNullOrWhiteSpace(serverDescription) || !IsServerAccepted(serverDescription))
                 {
                     continue;
                 }
@@ -86,12 +91,27 @@ namespace ServerPickerX.Services.Servers
                     Description = serverDescription,
                 };
 
-                foreach (JsonObject? relay in (JsonArray)server.Value["relays"]!)
+                foreach (JsonNode? relay in relays)
                 {
-                    serverModel.RelayModels.Add(new RelayModel
+                    // Only real IPv4 addresses are kept. A missing one used to come
+                    // through as "", which crashed the app the moment that server
+                    // was pinged, and anything here also ends up in a firewall rule
+                    // or an iptables command, where it must be an address and
+                    // nothing else
+                    string? address = (relay as JsonObject)?["ipv4"]?.ToString();
+
+                    if (address != null
+                        && IPAddress.TryParse(address, out IPAddress? parsed)
+                        && parsed.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        IPv4 = relay!["ipv4"]?.ToString() ?? ""
-                    });
+                        serverModel.RelayModels.Add(new RelayModel { IPv4 = parsed.ToString() });
+                    }
+                }
+
+                // A server with no address left can be neither pinged nor blocked
+                if (serverModel.RelayModels.Count == 0)
+                {
+                    continue;
                 }
 
                 unclusteredServers.Add(serverModel);

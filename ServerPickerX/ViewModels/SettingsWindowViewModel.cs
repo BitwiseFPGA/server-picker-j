@@ -81,6 +81,20 @@ namespace ServerPickerX.ViewModels
                     await viewModelToRefresh.ClearBlockedStateAsync();
                 }
             }
+            catch (FirewallOperationException ex)
+            {
+                await _loggerService.LogErrorAsync("Some firewall rules could not be removed.", ex.Message);
+
+                // Linux takes the rules off server by server, so some can be gone
+                // while others are still there. The cards show exactly that, and
+                // the message names the ones that are still blocked
+                if (MainWindow.Instance?.DataContext is MainWindowViewModel partlyResetViewModel)
+                {
+                    await partlyResetViewModel.ClearBlockedStateAsync(ex.FailedServers);
+
+                    await partlyResetViewModel.ShowFirewallFailureAsync(false, ex.FailedServers);
+                }
+            }
             catch (Exception ex)
             {
                 await _loggerService.LogErrorAsync("An error has occurred while resetting firewall.", ex.Message);

@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Ого! Уже есть ожидающая операция. Пожалуйста, подождите...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Будут удалены только правила брандмауэра, созданные этим приложением, и разблокированы все серверы. Остальные правила на компьютере не затрагиваются. Продолжить?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Удалено правил брандмауэра, созданных приложением: {0}.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Ошибка</x:String>
+  <x:String x:Key="BlockFailedDialogue">Не удалось заблокировать эти серверы: {0}. Они остаются разблокированными. Подробности в файле журнала.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">Не удалось разблокировать эти серверы: {0}. Они остаются заблокированными. Подробности в файле журнала.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Что-то пошло не так при изменении брандмауэра. Подробности в файле журнала.</x:String>
   <x:String x:Key="Presets">Пресеты</x:String>
   <x:String x:Key="PresetsToolTip">Управление пресетами</x:String>
   <x:String x:Key="AddPreset">Добавить</x:String>

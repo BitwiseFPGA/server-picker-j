@@ -194,21 +194,51 @@ namespace ServerPickerX.Settings
         {
             await SaveLock.WaitAsync();
 
+            // Written beside the real file and then moved over it in one go.
+            // Writing into the real file meant emptying it first and filling
+            // it again afterwards, and anything going wrong in between -- a
+            // crash, the power cutting out, the serializer throwing on one
+            // bad value -- left the file empty or half written. Either way
+            // every setting, preset and blocked server list was gone on the
+            // next launch. Replacing the file in one move cannot do that:
+            // what is on disk is always either all of the old settings or
+            // all of the new ones
+            string temporaryPath = jsonFilePath + ".tmp";
+
             try
             {
-                // an extra curly brace is being added when serializing,
-                // remove the contents first then serialize data to file
-                await File.WriteAllTextAsync(jsonFilePath, String.Empty);
+                await using (FileStream file = File.Create(temporaryPath))
+                {
+                    await JsonSerializer.SerializeAsync(file, this, serializerOptions);
 
-                // open existing local json settings and deserialize it back to its complex form
-                using FileStream file = File.OpenWrite(jsonFilePath);
+                    // Settles the bytes on the drive before anything is
+                    // replaced, so the move cannot swap in a file the
+                    // drive has not actually finished writing
+                    file.Flush(flushToDisk: true);
+                }
 
-                await JsonSerializer.SerializeAsync(file, this, serializerOptions);
+                File.Move(temporaryPath, jsonFilePath, overwrite: true);
 
                 return true;
             }
             catch (Exception ex)
             {
+                // The real settings file was never touched, so it still
+                // holds the last good copy. Only the half written spare
+                // needs clearing away
+                try
+                {
+                    if (File.Exists(temporaryPath))
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Nothing more to do about it, and the save error below
+                    // is the one worth telling anybody about
+                }
+
                 await _loggerService.LogErrorAsync("An error has occured while saving json settings", ex.Message);
 
                 await _messageBoxService.ShowMessageBoxAsync("Error", "An error has occured while saving json settings");

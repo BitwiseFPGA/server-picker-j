@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Ojej! Jest już operacja w toku. Proszę czekać...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Spowoduje to usunięcie wyłącznie reguł zapory utworzonych przez tę aplikację i odblokowanie wszystkich serwerów. Pozostałe reguły na komputerze nie zostaną zmienione. Kontynuować?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Usunięto {0} reguł zapory utworzonych przez tę aplikację.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Błąd</x:String>
+  <x:String x:Key="BlockFailedDialogue">Nie udało się zablokować tych serwerów: {0}. Pozostają odblokowane. Szczegóły są w pliku dziennika.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">Nie udało się odblokować tych serwerów: {0}. Pozostają zablokowane. Szczegóły są w pliku dziennika.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Coś poszło nie tak podczas zmiany zapory. Szczegóły są w pliku dziennika.</x:String>
   <x:String x:Key="Presets">Presety</x:String>
   <x:String x:Key="PresetsToolTip">Zarządzaj presetami</x:String>
   <x:String x:Key="AddPreset">Dodaj</x:String>

@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">Moment! Ein Vorgang läuft bereits. Bitte warten Sie...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Damit werden nur die von dieser App erstellten Firewallregeln gelöscht und alle Server entsperrt. Andere Regeln auf deinem Computer bleiben unberührt. Fortfahren?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">{0} von dieser App erstellte Firewallregel(n) entfernt.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Fehler</x:String>
+  <x:String x:Key="BlockFailedDialogue">Diese Server konnten nicht blockiert werden: {0}. Sie bleiben entsperrt. Details stehen in der Logdatei.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">Diese Server konnten nicht entsperrt werden: {0}. Sie bleiben blockiert. Details stehen in der Logdatei.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Beim Ändern der Firewall ist etwas schiefgelaufen. Details stehen in der Logdatei.</x:String>
   <x:String x:Key="Presets">Voreinstellungen</x:String>
   <x:String x:Key="PresetsToolTip">Voreinstellungen verwalten</x:String>
   <x:String x:Key="AddPreset">Hinzufügen</x:String>

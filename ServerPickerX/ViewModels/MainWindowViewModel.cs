@@ -106,6 +106,9 @@ namespace ServerPickerX.ViewModels
 
         private const int UnknownPacketLoss = 100;
 
+        // How many servers a firewall error names before it speaks generally instead
+        private const int MaxFailedServersNamed = 6;
+
         private readonly ILoggerService _loggerService;
         private readonly IMessageBoxService _messageBoxService;
         private readonly ILocalizationService _localizationService;
@@ -503,45 +506,81 @@ namespace ServerPickerX.ViewModels
 
             try
             {
-                if (shouldBlock)
+                IReadOnlyList<ServerModel> failedServers = [];
+
+                try
                 {
-                    await _systemFirewallService.BlockServersAsync(serverModels);
-
-                    await _loggerService.LogInfoAsync("Servers blocked successfully");
+                    if (shouldBlock)
+                    {
+                        await _systemFirewallService.BlockServersAsync(serverModels);
+                    }
+                    else
+                    {
+                        await _systemFirewallService.UnblockServersAsync(serverModels);
+                    }
                 }
-                else
+                catch (FirewallOperationException ex)
                 {
-                    await _systemFirewallService.UnblockServersAsync(serverModels);
-
-                    await _loggerService.LogInfoAsync("Servers unblocked successfully");
+                    // Some servers went through and some did not. Every server is
+                    // shown as it really is, rather than the whole pass being
+                    // marked as done or as not done
+                    failedServers = ex.FailedServers;
                 }
 
-                foreach (ServerModel serverModel in serverModels)
+                ObservableCollection<ServerModel> changedServers = failedServers.Count == 0
+                    ? serverModels
+                    : new ObservableCollection<ServerModel>(
+                        serverModels.Where(serverModel => !failedServers.Contains(serverModel))
+                        );
+
+                foreach (ServerModel serverModel in changedServers)
                 {
                     serverModel.IsBlocked = shouldBlock;
+                }
+
+                // A server that failed shows what the message below says about it.
+                // An unblock can only fail on a rule that is there, so that server
+                // is blocked, even when its card said otherwise before
+                foreach (ServerModel serverModel in failedServers)
+                {
+                    serverModel.IsBlocked = !shouldBlock;
                 }
 
                 await PersistBlockedServerKeysAsync();
 
                 OnPropertyChanged(nameof(BlockedServerCount));
 
-                if (shouldClearLastSelectedPreset)
+                // A pass where nothing went through leaves the blocks, and so the
+                // preset they came from, exactly as they were
+                if (shouldClearLastSelectedPreset && changedServers.Count > 0)
                 {
                     await ClearLastSelectedPresetByGameModeAsync();
                 }
 
                 // Ping servers (parallel/fire-forget operation)
-                PingServers(serverModels);
+                PingServers(changedServers);
 
-                return true;
+                if (failedServers.Count == 0)
+                {
+                    await _loggerService.LogInfoAsync(shouldBlock
+                        ? "Servers blocked successfully"
+                        : "Servers unblocked successfully");
+
+                    return true;
+                }
+
+                await ShowFirewallFailureAsync(shouldBlock, failedServers);
+
+                return false;
             }
             catch (Exception ex)
             {
                 await _loggerService.LogErrorAsync("An error has occurred while blocking or unblocking servers.", ex.Message);
 
                 await _messageBoxService.ShowMessageBoxAsync(
-                    "Error",
-                    "Oops! Something went wrong. Please upload the log file to GitHub."
+                    _localizationService.GetLocaleValue("MessageBoxErrorTitle"),
+                    _localizationService.GetLocaleValue("FirewallErrorDialogue"),
+                    Icon.Error
                     );
 
                 return false;
@@ -551,6 +590,27 @@ namespace ServerPickerX.ViewModels
                 PendingOperation = false;
                 ShowProgressBar = false;
             }
+        }
+
+        // Said out loud, never only written to the log: a server the user believes
+        // is blocked, and is not, is the whole thing going wrong. A few names say
+        // exactly what happened. A long list is one cause behind it all, a missing
+        // permission say, so past a handful the message stays general and the log
+        // names every server
+        public async Task ShowFirewallFailureAsync(bool shouldBlock, IReadOnlyList<ServerModel> failedServers)
+        {
+            string message = failedServers.Count <= MaxFailedServersNamed
+                ? string.Format(
+                    _localizationService.GetLocaleValue(shouldBlock ? "BlockFailedDialogue" : "UnblockFailedDialogue"),
+                    string.Join(", ", failedServers.Select(serverModel => serverModel.Description))
+                    )
+                : _localizationService.GetLocaleValue("FirewallErrorDialogue");
+
+            await _messageBoxService.ShowMessageBoxAsync(
+                _localizationService.GetLocaleValue("MessageBoxErrorTitle"),
+                message,
+                Icon.Error
+                );
         }
 
         public IServerDataService GetServerDataService()
@@ -659,12 +719,13 @@ namespace ServerPickerX.ViewModels
         }
 
         // Called once the firewall rules this app created have been removed, so the
-        // cards stop claiming servers are blocked when nothing is blocking them
-        public async Task ClearBlockedStateAsync()
+        // cards stop claiming servers are blocked when nothing is blocking them.
+        // Servers whose rules could not be removed keep showing as blocked
+        public async Task ClearBlockedStateAsync(IReadOnlyCollection<ServerModel>? stillBlocked = null)
         {
             foreach (ServerModel serverModel in ServerModels)
             {
-                serverModel.IsBlocked = false;
+                serverModel.IsBlocked = stillBlocked?.Contains(serverModel) == true;
             }
 
             await PersistBlockedServerKeysAsync();
@@ -795,6 +856,90 @@ namespace ServerPickerX.ViewModels
             }
 
             return await PerformOperationAsync(true, matchingServerModels, false);
+        }
+
+        // Which servers are blocked, how the list is grouped and which preset is
+        // selected, captured so that exactly this can be put back later. Auto
+        // apply takes one before it puts a preset on, so that the game closing
+        // restores what was there, blocks made by hand included, instead of
+        // unblocking everything
+        public sealed class BlockedState(bool isClustered, HashSet<string> blockedKeys, string presetName)
+        {
+            public bool IsClustered { get; } = isClustered;
+
+            public HashSet<string> BlockedKeys { get; } = blockedKeys;
+
+            public string PresetName { get; } = presetName;
+
+            // Compares the blocks only. The selected preset is not something the
+            // user can change by blocking or unblocking a server
+            public bool SameAs(BlockedState other)
+                => IsClustered == other.IsClustered && BlockedKeys.SetEquals(other.BlockedKeys);
+        }
+
+        public BlockedState CaptureBlockedState()
+            => new(
+                _jsonSetting.is_clustered,
+                ServerModels
+                    .Where(serverModel => serverModel.IsBlocked)
+                    .Select(serverModel => GetServerKey(serverModel))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase),
+                _jsonSetting.GetLastSelectedPresetNameByGameMode()
+                );
+
+        // The same steps a preset takes when it is applied, with a captured
+        // state in place of the preset: everything unblocked, the grouping set
+        // back, then exactly the captured servers blocked again
+        public async Task<bool> RestoreBlockedStateAsync(BlockedState state)
+        {
+            try
+            {
+                if (ServerModels.Count > 0)
+                {
+                    bool unblocked = await PerformOperationAsync(false, ServerModels, false);
+
+                    if (!unblocked)
+                    {
+                        return false;
+                    }
+                }
+
+                await SetClusterStateAsync(state.IsClustered, false);
+
+                ObservableCollection<ServerModel> serversToBlock = new(
+                    ServerModels.Where(serverModel => state.BlockedKeys.Contains(GetServerKey(serverModel)))
+                    );
+
+                if (serversToBlock.Count == 0)
+                {
+                    return true;
+                }
+
+                return await PerformOperationAsync(true, serversToBlock, false);
+            }
+            finally
+            {
+                // Switching between clustered and unclustered forgets the selected
+                // preset, and so does a preset that only partly went on at launch.
+                // Auto apply chooses the next game's preset from it, so it is put
+                // back however the restore went. Without this, auto apply would
+                // quietly stop after one game
+                await RestoreSelectedPresetAsync(state.PresetName);
+            }
+        }
+
+        public async Task RestoreSelectedPresetAsync(string presetName)
+        {
+            if (string.IsNullOrWhiteSpace(presetName)
+                || presetName.Equals(_jsonSetting.GetLastSelectedPresetNameByGameMode(), StringComparison.OrdinalIgnoreCase)
+                || GetCurrentGamePreset(presetName) == null)
+            {
+                return;
+            }
+
+            SelectPresetByName(presetName);
+
+            await _jsonSetting.SetLastSelectedPresetNameByGameModeAsync(presetName);
         }
 
         // The servers the preset blocks, including any Valve added after the preset was saved

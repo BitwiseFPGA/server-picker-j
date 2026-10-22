@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">¡Vaya! Ya hay una operación pendiente. Por favor, espere...</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">Esto elimina solo las reglas de firewall creadas por esta aplicación y desbloquea todos los servidores. Las demás reglas de tu equipo no se tocan. ¿Continuar?</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">Se eliminaron {0} regla(s) de firewall creadas por esta aplicación.</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">Error</x:String>
+  <x:String x:Key="BlockFailedDialogue">No se pudieron bloquear estos servidores: {0}. Siguen desbloqueados. Los detalles están en el archivo de registro.</x:String>
+  <x:String x:Key="UnblockFailedDialogue">No se pudieron desbloquear estos servidores: {0}. Siguen bloqueados. Los detalles están en el archivo de registro.</x:String>
+  <x:String x:Key="FirewallErrorDialogue">Algo salió mal al cambiar el firewall. Los detalles están en el archivo de registro.</x:String>
   <x:String x:Key="Presets">Preajustes</x:String>
   <x:String x:Key="PresetsToolTip">Administrar preajustes</x:String>
   <x:String x:Key="AddPreset">Añadir</x:String>

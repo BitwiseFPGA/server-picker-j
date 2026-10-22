@@ -32,9 +32,29 @@ blanking it. Blanking it gives every blocked server the same sort key.
 against `AppContext.BaseDirectory`, not the working directory, because a shortcut without a working
 directory or an elevated launch can hand the process an unrelated cwd. Anything else the app writes
 belongs next to the executable for the same reason.
-- **Auto apply only undoes its own work.** The game watcher unblocks on exit only when it applied a
-preset on launch, tracked by `_gameWatcherApplied`. Blocks the user made by hand are never cleared
-silently.
+- **Auto apply restores what was there, it does not unblock everything.** Applying a preset unblocks
+every server first, so the game watcher takes a `MainWindowViewModel.BlockedState` snapshot
+(grouping + blocked keys + selected preset name) *before* the launch apply and restores exactly that
+on exit. It arms whenever anything changed, not only on success, and skips the restore when the live
+state no longer matches the post-apply snapshot, which means the user changed blocks during the game
+and those are theirs. The preset name travels in the snapshot and is put back in a `finally`: a
+grouping switch clears the last-selected preset, and auto apply picks the next game's preset from it,
+so without that auto apply stops silently after one game. Before 2.1.0 this called `UnblockAllAsync`
+and took the user's own blocks with it, while the comment claimed otherwise. Do not "simplify" it back.
+- **A firewall pass reports every server it failed on.** Both services try every server, log each
+failure, and throw one `FirewallOperationException` carrying the failed servers at the end.
+`PerformOperationAsync` applies the new state only to the servers that went through, sets the failed
+ones to the opposite, persists, and shows the user a named error (up to six servers; past that one
+shared cause is assumed and the message stays general). The `ISystemFirewallService` signatures are
+unchanged on purpose, so the Moq tests keep working. Never let a firewall call fail quietly: a server
+the user believes is blocked, and is not, is the one failure that matters.
+- **Linux block and unblock are idempotent.** Each pass reads `iptables -S INPUT` first
+(`ReadDropRulesAsync`: exactly six tokens, `-A INPUT -s <address> -j DROP`, `/32` stripped) and only
+adds rules that are missing, only deletes rules that exist, every copy. Rules of any other shape are
+never counted and so never touched. Blocking twice used to leave two rules where unblocking removed
+one, and "Unblock all" passes every server, blocked or not, so deleting a rule that is not there must
+never count as a failure. Mutating calls carry `-w 5` for the xtables lock. Read both stdout and
+stderr *before* awaiting the exit, or a full pipe deadlocks the child forever.
 - **Trimming is fragile**, as the csproj comment says. Reflection based code can compile and then fail only in
 a published build, so test the publish output rather than a debug run.
 - **Locale keys live in nine files** under `Locales/`. A key added to one must be added to all nine.
@@ -66,6 +86,40 @@ endings, writes `SHA256SUMS.txt`, attests the zips and attaches everything. The 
 by the csproj `AssemblyVersion`. "Run workflow" on the Actions tab does a dry run without a release.
 - **Avalonia 12 moved some APIs.** For example `IClipboard` is in `Avalonia.Input.Platform` and reading text is
 `TryGetTextAsync()`, not `GetTextAsync()`. Check the Avalonia 12 docs rather than assuming Avalonia 11 signatures.
+
+## Rules that override your own judgement
+
+These are the maintainer's decisions. Do not undo them, and do not re-litigate them in a reply.
+
+- **Nothing may wear the drive or risk the user's data.** Never rewrite a whole file per small change.
+Never truncate a real file before refilling it — write a temp file, flush to disk, then move over it
+(`JsonSetting.SaveSettingsAsync` is the pattern). Never let a log grow unbounded
+(`FileLoggerService`: 1 MB plus one `.old`). No new background timers, and nothing may run while a
+game is being played.
+- **Never widen the blast radius.** Only ever touch what this app created: its own firewall rules by
+the `server_picker_x_` prefix, its own iptables DROP rules, its own files. Anyone who downloads this
+should feel safe. If you spot anything in the code that reaches further than that, say so.
+- **Presets never change on their own.** Not when Valve adds or removes servers, not when the app
+changes.
+- **No AI-generated art or textures**, and never bundle Valve or Forevs fonts. CC0 only.
+- **Do not scrape sites that ask not to be scraped.** Link out instead.
+- **The maintainer builds, commits, pushes and releases.** Do not run `git commit`, `git push`, or
+`gh release` unless asked in that session. The version bump goes in with the release, not before.
+- **When something cannot be compiled or run here**, say so plainly and verify another way (parse the
+file, simulate the algorithm, check every call site by hand). Do not report untested work as tested.
+
+### Known and deliberately not fixed — do not "fix" these
+
+Each was looked at, judged not worth the churn, and left alone on purpose. Raise them only if you have
+a concrete user-visible failure, not a theory.
+
+- Nothing runs off the UI thread (there is no `Task.Run` in the project), so a firewall pass blocks the
+window and the progress bar cannot paint. In practice it is about a second, never a hang.
+- Firewall rule names come from `Description` with spaces stripped, while identity elsewhere is `Name`.
+Two servers sharing a description would collide. No such pair exists in Valve's list.
+- Preset-apply re-entrancy timing gap; a ping sweep outliving a game switch; undisposed COM RCWs and
+one `CancellationTokenSource` per probe; Linux reset with an empty server list.
+- The Presets window headers "ID" and "Location" are English-only, though translations exist.
 
 ## Build / Publish Guidelines
 ```bash

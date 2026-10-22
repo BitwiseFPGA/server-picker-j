@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">目前有待处理的操作。请稍候……</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">这将仅删除本应用创建的防火墙规则并解除所有服务器的屏蔽。计算机上的其他规则不受影响。是否继续？</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">已删除本应用创建的 {0} 条防火墙规则。</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">错误</x:String>
+  <x:String x:Key="BlockFailedDialogue">以下服务器无法屏蔽：{0}。它们仍未被屏蔽。详细信息请查看日志文件。</x:String>
+  <x:String x:Key="UnblockFailedDialogue">以下服务器无法解除屏蔽：{0}。它们仍处于屏蔽状态。详细信息请查看日志文件。</x:String>
+  <x:String x:Key="FirewallErrorDialogue">更改防火墙时出错。详细信息请查看日志文件。</x:String>
   <x:String x:Key="Presets">预设</x:String>
   <x:String x:Key="PresetsToolTip">管理预设</x:String>
   <x:String x:Key="AddPreset">添加</x:String>

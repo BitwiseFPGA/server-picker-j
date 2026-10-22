@@ -29,6 +29,10 @@
   <x:String x:Key="PendingOperationDialogue">おっと！既に処理が実行されています。しばらくお待ちください。</x:String>
   <x:String x:Key="FirewallResetConfirmDialogue">このアプリが作成したファイアウォールルールのみを削除し、すべてのサーバーのブロックを解除します。他のルールには影響しません。続行しますか？</x:String>
   <x:String x:Key="FirewallResetSuccessDialogue">このアプリが作成したファイアウォールルールを {0} 件削除しました。</x:String>
+  <x:String x:Key="MessageBoxErrorTitle">エラー</x:String>
+  <x:String x:Key="BlockFailedDialogue">次のサーバーをブロックできませんでした: {0}。ブロックされていない状態のままです。詳細はログファイルを確認してください。</x:String>
+  <x:String x:Key="UnblockFailedDialogue">次のサーバーのブロックを解除できませんでした: {0}。ブロックされた状態のままです。詳細はログファイルを確認してください。</x:String>
+  <x:String x:Key="FirewallErrorDialogue">ファイアウォールの変更中に問題が発生しました。詳細はログファイルを確認してください。</x:String>
   <x:String x:Key="Presets">プリセット</x:String>
   <x:String x:Key="PresetsToolTip">プリセットの管理</x:String>
   <x:String x:Key="AddPreset">追加</x:String>

@@ -49,10 +49,30 @@ namespace ServerPickerX.Services.Servers
                 throw;
             }
 
-            var json = File.ReadAllText(path);
+            List<ServerDefinition> loadedDefinitions;
 
-            List<ServerDefinition> loadedDefinitions =
-                JsonSerializer.Deserialize<List<ServerDefinition>>(json, _jsonDeserializerOptions) ?? [];
+            // The file is meant to be edited by hand to add games, so a typo in it
+            // is a normal thing to happen. It used to throw here, before any window
+            // existed, and the app simply did not open. Now it opens on the games
+            // built in, the log says what is wrong with the file and where, and the
+            // file itself is left untouched so the edit can be fixed
+            try
+            {
+                loadedDefinitions =
+                    JsonSerializer.Deserialize<List<ServerDefinition>>(File.ReadAllText(path), _jsonDeserializerOptions) ?? [];
+            }
+            catch (Exception ex)
+            {
+                _loggerService.LogErrorAsync("ServerDefinitions.json could not be read, the built-in games are used instead", ex.Message);
+
+                loadedDefinitions = [];
+            }
+
+            // An empty list would leave the app with no games to show at all
+            if (loadedDefinitions.Count == 0)
+            {
+                loadedDefinitions = CreateDefaultServerDefinitions();
+            }
 
             // Files written by older versions list CS2 first, the order is fixed here
             // instead of rewriting the file
